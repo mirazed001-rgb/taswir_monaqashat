@@ -49,7 +49,6 @@ def send_telegram_alert(record):
 🏷️ *رمز الطلب:* `{record.get('id', 'JSR')}`
 ⚡ *الحالة:* قيد المراجعة (بانتظار قبول الطلب وتعيين المصور)"""
 
-    sheet_url = "https://docs.google.com/spreadsheets/d/1KDKJxfzQ3kYwpOsvkgRoRg7a9FuBcihIvgoajNPp730/edit?gid=0#gid=0"
     rec_id = record.get('id', 'JSR')
     accept_url = f"https://mirazed001-rgb.github.io/taswir_monaqashat/?accept={rec_id}"
 
@@ -64,10 +63,6 @@ def send_telegram_alert(record):
                     {
                         "text": "✅ قبول المناقشة وتعيين المصور",
                         "url": accept_url
-                    },
-                    {
-                        "text": "📊 جدول Google Sheet",
-                        "url": sheet_url
                     }
                 ]
             ]
@@ -98,7 +93,6 @@ def send_acceptance_alert(record):
         "2026-09-22": "الثلاثاء 22 سبتمبر 2026"
     }
     day_str = date_labels.get(record.get("defenseDate", ""), record.get("defenseDate", ""))
-    sheet_url = "https://docs.google.com/spreadsheets/d/1KDKJxfzQ3kYwpOsvkgRoRg7a9FuBcihIvgoajNPp730/edit?gid=0#gid=0"
 
     text = f"""✅ *تم قبول طلب توثيق مناقشة — نادي الجسور*
 
@@ -108,23 +102,13 @@ def send_acceptance_alert(record):
 🏛️ *القاعة:* {record.get('defenseHall', '')}
 📅 *الموعد:* {day_str} | ⏰ *التوقيت:* {record.get('defenseTime', '')}
 📷 *المصور المتكفل بالتصوير:* *{record.get('photographerName', 'غير محدد')}*
-📊 *الحالة:* تم القبول وتعيين المصور وإدراجها في Google Sheet 🟢"""
+📊 *الحالة:* تم تأكيد الطلب وتعيين المصور بنجاح 🟢"""
 
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
     payload = {
         "chat_id": CHAT_ID,
         "text": text,
-        "parse_mode": "Markdown",
-        "reply_markup": {
-            "inline_keyboard": [
-                [
-                    {
-                        "text": "📊 فتح جدول Google Sheet المباشر",
-                        "url": sheet_url
-                    }
-                ]
-            ]
-        }
+        "parse_mode": "Markdown"
     }
     if TOPIC_ID:
         payload["message_thread_id"] = TOPIC_ID
