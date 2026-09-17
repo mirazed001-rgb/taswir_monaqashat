@@ -66,9 +66,9 @@ function getSettings() {
   const defaults = {
     adminPass: 'josour2026',
     webhookUrl: '',
-    botToken: '8509092860:AAET4WCXrx2MD2QVb0yrRCql5lAXoy-UhyY',
-    chatId: '-1004497345814', // حقيبة نشطاء جسور
-    topicId: '30' // موضوع تقارير المداومة
+    botToken: '8973353664:AAHzThHxzp69jYh-A_fCU6T3U9Q-kJFf9f0', // بوت توثيق مناقشات جسور الجديد (@JosourMonaqashatBot)
+    chatId: '-1002534160494', // نُشَطَاء جُسُور |7|
+    topicId: '' // قناة نشطاء جسور 7
   };
   try {
     const saved = localStorage.getItem(SETTINGS_KEY);
@@ -229,18 +229,26 @@ async function handleFormSubmit(event) {
   submitBtn.disabled = true;
   submitBtn.innerHTML = '<span>⏳</span> جاري حفظ التسجيل والإرسال...';
 
+  const pres = document.getElementById('committeePresident').value.trim();
+  const sup = document.getElementById('supervisor').value.trim();
+  const exam = document.getElementById('examiner').value.trim();
+
   const newRecord = {
     id: 'JSR-' + Date.now().toString().slice(-6),
     createdAt: new Date().toISOString(),
     fullName: document.getElementById('fullName').value.trim(),
     specialty: document.getElementById('specialty').value.trim(),
     thesisTitle: document.getElementById('thesisTitle').value.trim(),
-    committeeMembers: document.getElementById('committeeMembers').value.trim(),
+    committeePresident: pres,
+    supervisor: sup,
+    examiner: exam,
+    committeeMembers: `رئيس اللجنة: ${pres} | المشرف: ${sup} | المناقش: ${exam}`,
     defenseHall: document.getElementById('defenseHall').value.trim(),
     defenseDate: dateVal,
     defenseTime: document.getElementById('defenseTime').value,
     phoneNumber: document.getElementById('phoneNumber').value.trim(),
     telegramUser: document.getElementById('telegramUser').value.trim(),
+    photographerName: '', // يحدد عند قبول الطلب لإدراجه في Google Sheet
     status: 'جديد'
   };
 
@@ -258,22 +266,8 @@ async function handleFormSubmit(event) {
   records.push(newRecord);
   saveRecords(records);
 
-  // 2. محاولة الإرسال السحابي إلى Google Apps Script Webhook إن وجد
+  // 3. إرسال إشعار فوري لبوت تيليجرام الجديد بقناة نشطاء جسور 7
   const settings = getSettings();
-  if (settings.webhookUrl) {
-    try {
-      await fetch(settings.webhookUrl, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newRecord)
-      });
-    } catch (err) {
-      console.warn('Google Sheets Webhook attempt completed/handled:', err);
-    }
-  }
-
-  // 3. إرسال إشعار فوري لتيليجرام مباشرة
   sendTelegramNotification(newRecord, settings);
 
   // 4. إظهار بطاقة التأكيد وتفريغ النموذج
@@ -309,11 +303,13 @@ function sendTelegramNotification(record, settings) {
 👤 *الطالب:* ${record.fullName}
 📚 *التخصص:* ${record.specialty}
 📖 *عنوان المذكرة:* ${record.thesisTitle}
-👥 *اللجنة:* ${record.committeeMembers}
+👨‍🏫 *رئيس اللجنة:* ${record.committeePresident || 'غير محدد'}
+👨‍🏫 *الأستاذ المشرف:* ${record.supervisor || 'غير محدد'}
+👨‍🏫 *الأستاذ المناقش:* ${record.examiner || 'غير محدد'}
 🏛️ *القاعة:* ${record.defenseHall}
 📅 *الموعد:* ${formattedDate}
 ⏰ *التوقيت:* ${record.defenseTime}
-📞 *الهاتف:* ${record.phoneNumber}
+📞 *الهاتف:* \`${record.phoneNumber}\`
 💬 *التيليجرام:* ${record.telegramUser}
 🏷️ *رمز الطلب:* \`${record.id}\`
 ⚡ *الحالة:* قيد المراجعة في المقر`;
@@ -334,6 +330,48 @@ function sendTelegramNotification(record, settings) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   }).catch(e => console.error('Telegram notification error:', e));
+}
+
+// إرسال إشعار قبول الطلب وتعيين المصور إلى قناة نشطاء جسور 7
+function sendAcceptanceTelegramNotification(record, settings) {
+  if (!settings.botToken || !settings.chatId) return;
+
+  const dateMap = {
+    '2026-09-19': 'السبت 19 سبتمبر 2026',
+    '2026-09-20': 'الأحد 20 سبتمبر 2026',
+    '2026-09-21': 'الاثنين 21 سبتمبر 2026',
+    '2026-09-22': 'الثلاثاء 22 سبتمبر 2026'
+  };
+
+  const formattedDate = dateMap[record.defenseDate] || record.defenseDate;
+
+  const msgText = 
+`✅ *تم قبول طلب توثيق مناقشة — نادي الجسور*
+
+👤 *الطالب:* ${record.fullName}
+📚 *التخصص:* ${record.specialty}
+📖 *عنوان المذكرة:* ${record.thesisTitle}
+🏛️ *القاعة:* ${record.defenseHall}
+📅 *الموعد:* ${formattedDate} | ⏰ *التوقيت:* ${record.defenseTime}
+📷 *المصور المتكفل بالتصوير:* *${record.photographerName}*
+📊 *الحالة:* تم القبول وتعيين المصور وإدراجها في Google Sheet 🟢`;
+
+  const url = `https://api.telegram.org/bot${settings.botToken}/sendMessage`;
+  const payload = {
+    chat_id: settings.chatId,
+    text: msgText,
+    parse_mode: 'Markdown'
+  };
+
+  if (settings.topicId) {
+    payload.message_thread_id = parseInt(settings.topicId, 10);
+  }
+
+  fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  }).catch(e => console.error('Telegram acceptance alert error:', e));
 }
 
 // ==========================================================================
@@ -502,7 +540,7 @@ function filterTable() {
       </td>
       <td>${escapeHtml(r.specialty)}</td>
       <td style="max-width: 200px; font-size: 0.85rem;">${escapeHtml(r.thesisTitle)}</td>
-      <td style="font-size: 0.85rem;">${escapeHtml(r.committeeMembers)}</td>
+      <td style="font-size: 0.85rem;">${escapeHtml(r.committeeMembers || '')}</td>
       <td><strong>${escapeHtml(r.defenseHall)}</strong></td>
       <td>
         <span style="color:#eab308; font-weight:700;">${dateShort[r.defenseDate] || r.defenseDate}</span><br>
@@ -513,10 +551,20 @@ function filterTable() {
         <small style="color:#38bdf8">${escapeHtml(r.telegramUser)}</small>
       </td>
       <td>
+        ${r.photographerName ? 
+          `<span style="color:#10b981; font-weight:700;">📷 ${escapeHtml(r.photographerName)}</span>` : 
+          `<span style="color:#94a3b8; font-size:0.85rem;">لم يُعيّن بعد</span>`
+        }
+      </td>
+      <td>
         <span class="badge-status status-${r.status.replace(/\s+/g, '-')}">${r.status}</span>
       </td>
       <td class="no-print">
         <div class="table-actions">
+          ${r.status === 'جديد' || !r.photographerName ? 
+            `<button type="button" class="btn-icon-action" style="background:#065f46; color:#86efac; border-color:#10b981; font-weight:700; white-space:nowrap;" onclick="openAcceptModal('${r.id}')">✅ قبول وتعيين مصور</button>` : 
+            `<button type="button" class="btn-icon-action" title="تعديل المصور" onclick="openAcceptModal('${r.id}')">✏️ المصور</button>`
+          }
           <select onchange="changeStatus('${r.id}', this.value)" style="padding: 4px 6px; font-size: 0.8rem;">
             <option value="جديد" ${r.status === 'جديد' ? 'selected' : ''}>جديد</option>
             <option value="مؤكد" ${r.status === 'مؤكد' ? 'selected' : ''}>مؤكد</option>
@@ -529,6 +577,103 @@ function filterTable() {
       </td>
     </tr>
   `).join('');
+}
+
+// ==========================================================================
+// إدارة نافذة قبول الطلب وتعيين المصور والإدراج التلقائي في Google Sheets
+// ==========================================================================
+let currentAcceptingRecordId = null;
+
+function openAcceptModal(recordId) {
+  const records = getRecords();
+  const record = records.find(r => r.id === recordId);
+  if (!record) return;
+
+  currentAcceptingRecordId = recordId;
+  const summaryEl = document.getElementById('acceptStudentSummary');
+  const dateShort = {
+    '2026-09-19': 'السبت 19 سبتمبر 2026',
+    '2026-09-20': 'الأحد 20 سبتمبر 2026',
+    '2026-09-21': 'الاثنين 21 سبتمبر 2026',
+    '2026-09-22': 'الثلاثاء 22 سبتمبر 2026'
+  };
+
+  summaryEl.innerHTML = `
+    <div class="summary-item">
+      <span class="summary-label">الطالب:</span>
+      <span class="summary-val">${escapeHtml(record.fullName)}</span>
+    </div>
+    <div class="summary-item">
+      <span class="summary-label">التخصص:</span>
+      <span class="summary-val">${escapeHtml(record.specialty)}</span>
+    </div>
+    <div class="summary-item">
+      <span class="summary-label">الموعد:</span>
+      <span class="summary-val">${dateShort[record.defenseDate] || record.defenseDate} — ${record.defenseTime}</span>
+    </div>
+    <div class="summary-item">
+      <span class="summary-label">القاعة:</span>
+      <span class="summary-val">${escapeHtml(record.defenseHall)}</span>
+    </div>
+  `;
+
+  document.getElementById('photographerInput').value = record.photographerName || '';
+  document.getElementById('acceptModal').classList.add('active-modal');
+}
+
+function closeAcceptModal() {
+  currentAcceptingRecordId = null;
+  document.getElementById('acceptModal').classList.remove('active-modal');
+}
+
+async function confirmAcceptance() {
+  const photographer = document.getElementById('photographerInput').value.trim();
+  if (!photographer) {
+    alert('يرجى إدخال اسم المصور المتكفل بالتصوير أولاً للمتابعة.');
+    return;
+  }
+
+  const records = getRecords();
+  const record = records.find(r => r.id === currentAcceptingRecordId);
+  if (!record) return;
+
+  record.photographerName = photographer;
+  record.status = 'مؤكد';
+  record.acceptedAt = new Date().toISOString();
+
+  saveRecords(records);
+  renderDashboard();
+
+  // 1. تحديث قاعدة بيانات فايربيس السحابية
+  if (db) {
+    db.collection('defense_registrations').doc(record.id).update({
+      photographerName: photographer,
+      status: 'مؤكد',
+      acceptedAt: record.acceptedAt
+    }).catch(e => console.warn('Firebase update notice:', e));
+  }
+
+  // 2. إدراج فوري وتلقائي في Google Sheet عبر Webhook
+  const settings = getSettings();
+  if (settings.webhookUrl) {
+    try {
+      await fetch(settings.webhookUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(record)
+      });
+      console.log('تم إرسال المناقشة المقبولة إلى Google Sheets بنجاح.');
+    } catch (err) {
+      console.warn('Google Sheets Webhook attempt completed/handled:', err);
+    }
+  }
+
+  // 3. إرسال إشعار فوري لقناة نشطاء جسور 7 بقبول الطلب وتعيين المصور
+  sendAcceptanceTelegramNotification(record, settings);
+
+  closeAcceptModal();
+  alert(`✅ تم بنجاح قبول طلب الطالب (${record.fullName}) وتعيين المصور (${photographer})، وجاري إدراجه في Google Sheet!`);
 }
 
 function changeStatus(recordId, newStatus) {
@@ -569,7 +714,7 @@ function exportDataToCSV() {
     return;
   }
 
-  const headers = ['رقم الطلب', 'تاريخ التسجيل', 'الاسم واللقب', 'التخصص', 'عنوان المذكرة', 'اللجنة', 'القاعة', 'يوم المناقشة', 'التوقيت', 'الهاتف', 'التيليجرام', 'الحالة'];
+  const headers = ['رقم الطلب', 'تاريخ التسجيل', 'الاسم واللقب', 'التخصص', 'عنوان المذكرة', 'اللجنة', 'القاعة', 'يوم المناقشة', 'التوقيت', 'الهاتف', 'التيليجرام', 'المصور المتكفل', 'الحالة'];
   
   const rows = records.map(r => [
     `"${r.id}"`,
@@ -577,12 +722,13 @@ function exportDataToCSV() {
     `"${r.fullName.replace(/"/g, '""')}"`,
     `"${r.specialty.replace(/"/g, '""')}"`,
     `"${r.thesisTitle.replace(/"/g, '""')}"`,
-    `"${r.committeeMembers.replace(/"/g, '""')}"`,
+    `"${(r.committeeMembers || '').replace(/"/g, '""')}"`,
     `"${r.defenseHall.replace(/"/g, '""')}"`,
     `"${r.defenseDate}"`,
     `"${r.defenseTime}"`,
     `"${r.phoneNumber}"`,
     `"${r.telegramUser}"`,
+    `"${(r.photographerName || 'لم يُعيّن').replace(/"/g, '""')}"`,
     `"${r.status}"`
   ]);
 
