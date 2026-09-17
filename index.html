@@ -261,6 +261,9 @@
               <p class="dashboard-subtitle">متابعة لحظية وتحديث لحالات المناقشات للأيام الأربعة (19 — 22 سبتمبر)</p>
             </div>
             <div class="dashboard-top-actions">
+              <button type="button" class="action-btn" id="syncAllSheetsBtn" style="background:#0f5132; border-color:#198754; color:#ffffff;" onclick="syncAllToGoogleSheets()">
+                <span>🔄</span> إرسال تلقائي لـ Google Sheet
+              </button>
               <button type="button" class="action-btn export-btn" onclick="exportDataToCSV()">
                 <span>📥</span> تصدير إلى Excel
               </button>
@@ -425,8 +428,14 @@
         <button type="button" class="close-btn" onclick="closeSettingsModal()">×</button>
       </div>
       <div class="modal-body">
-        <p class="settings-desc">يمكنك تغيير كلمة مرور لوحة الإدارة لحماية سجلات المناقشات:</p>
+        <p class="settings-desc">إعدادات لوحة الإدارة والربط التلقائي بجدول Google Sheet:</p>
         
+        <div class="form-group">
+          <label for="webhookUrlInput">رابط تطبيق الويب (Google Apps Script Webhook URL)</label>
+          <input type="url" id="webhookUrlInput" placeholder="https://script.google.com/macros/s/.../exec" dir="ltr">
+          <small class="field-hint">انسخ الرابط الناتج من نشر كود Google Sheets لتوجيه البيانات وإدراجها تلقائياً في جدولك.</small>
+        </div>
+
         <div class="form-group">
           <label for="adminPassInput">تعديل كلمة مرور لوحة الإدارة</label>
           <input type="text" id="adminPassInput" placeholder="كلمة المرور الحالية: josour2026">
