@@ -201,7 +201,7 @@ function sendTelegramAlert(data) {
 
   const dayLabel = dateLabels[data.defenseDate] || data.defenseDate;
 
-  const sheetUrl = "https://docs.google.com/spreadsheets/d/1DmuSOLyNDck0aeBtkapptSn2KdqyVzpiS2DOI6VKFBE/edit?gid=0#gid=0";
+  const sheetUrl = "https://docs.google.com/spreadsheets/d/1KDKJxfzQ3kYwpOsvkgRoRg7a9FuBcihIvgoajNPp730/edit?gid=0#gid=0";
 
   const message = 
 `✅ <b>تم قبول طلب توثيق مناقشة وتعيين المصور — نادي الجسور</b>
