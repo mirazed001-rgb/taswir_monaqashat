@@ -428,18 +428,25 @@
         <button type="button" class="close-btn" onclick="closeSettingsModal()">×</button>
       </div>
       <div class="modal-body">
-        <p class="settings-desc">يمكنك ربط المنصة مباشرة بـ Google Sheets وبوت تيليجرام لاستلام الإشعارات لحظة تسجيل كل طالب:</p>
+        <p class="settings-desc">تنتقل كافة بيانات المناقشة المقبولة ولجنتها والمصور تلقائياً إلى جدول Google Sheet بمجرد ضغط زر القبول:</p>
         
+        <div style="margin-bottom: 18px; padding: 12px; background: rgba(16, 185, 129, 0.1); border: 1px dashed #10b981; border-radius: 8px; text-align: center;">
+          <p style="margin: 0 0 10px 0; font-size: 0.9rem; color: #6ee7b7;">هل تريد إنشاء جدول Google Sheet جديد ومستقل بنقرة واحدة؟</p>
+          <a href="https://sheets.new" target="_blank" rel="noopener noreferrer" class="action-btn" style="background:#0f5132; border-color:#10b981; color:#ffffff; font-size:0.88rem; display:inline-flex; align-items:center; gap:8px;">
+            <span>➕</span> اضغط هنا لإنشاء جدول Google Sheet جديد الآن
+          </a>
+        </div>
+
         <div class="form-group">
-          <label for="webhookUrlInput">رابط تطبيق الويب (Google Apps Script Webhook URL)</label>
+          <label for="webhookUrlInput">رابط تطبيق الويب للجدول (Google Apps Script Webhook URL)</label>
           <input type="url" id="webhookUrlInput" placeholder="https://script.google.com/macros/s/.../exec" dir="ltr">
-          <small class="field-hint">انسخ الرابط من نشر كود Google Sheets المرفق لتخزين الطلبات سحابياً تلقائياً.</small>
+          <small class="field-hint">انسخ الرابط من نشر كود Google Sheets المرفق لتخزين الطلبات سحابياً وتلقائياً فور قبولها.</small>
         </div>
 
         <div class="form-group">
           <label for="sheetUrlInput">رابط جدول Google Sheet المباشر</label>
           <input type="url" id="sheetUrlInput" placeholder="https://docs.google.com/spreadsheets/d/.../edit" dir="ltr">
-          <small class="field-hint">الرابط المباشر للجدول ليتمكن المشرفون من فتحه بنقرة واحدة من لوحة الإدارة ومن تيليجرام.</small>
+          <small class="field-hint">الرابط المباشر لجدولك ليتمكن المشرفون من فتحه بنقرة واحدة من لوحة الإدارة ومن تيليجرام.</small>
         </div>
 
         <div class="form-group">
