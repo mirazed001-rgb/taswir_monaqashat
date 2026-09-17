@@ -5,18 +5,18 @@
  * ==============================================================================
  */
 
-// إعدادات البوت وتيليجرام
+// إعدادات بوت توثيق مناقشات جسور الجديد وقناة نشطاء جسور 7
 const TELEGRAM_CONFIG = {
-  BOT_TOKEN: "8509092860:AAET4WCXrx2MD2QVb0yrRCql5lAXoy-UhyY", // بوت المداومة والتقارير
-  CHAT_ID: "-1004497345814", // حقيبة نشطاء جسور
-  TOPIC_ID: 30 // موضوع تقارير المداومة
+  BOT_TOKEN: "8973353664:AAHzThHxzp69jYh-A_fCU6T3U9Q-kJFf9f0", // بوت توثيق مناقشات جسور الجديد (@JosourMonaqashatBot)
+  CHAT_ID: "-1002534160494", // نُشَطَاء جُسُور |7|
+  TOPIC_ID: null
 };
 
-const SHEET_NAME = "سجل طلبات المناقشات";
+const SHEET_NAME = "سجل المناقشات المقبولة";
 const MAX_PER_DAY = 5;
 
 /**
- * دالة استقبال الطلبات عبر POST Webhook
+ * دالة استقبال الطلبات المقبولة عبر POST Webhook
  */
 function doPost(e) {
   try {
@@ -42,20 +42,23 @@ function doPost(e) {
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
-    // إدراج السطر الجديد في جوجل شيت
+    // إدراج السطر الجديد في جوجل شيت متضمناً اسم المصور وتفاصيل اللجنة
     const newRow = [
       data.id || ("JSR-" + new Date().getTime().toString().slice(-6)),
       new Date().toLocaleString("ar-DZ", { timeZone: "Africa/Algiers" }),
       data.fullName || "",
       data.specialty || "",
       data.thesisTitle || "",
-      data.committeeMembers || "",
+      data.committeePresident || "",
+      data.supervisor || "",
+      data.examiner || "",
       data.defenseHall || "",
       data.defenseDate || "",
       data.defenseTime || "",
       data.phoneNumber || "",
       data.telegramUser || "",
-      data.status || "جديد"
+      data.photographerName || "لم يُعيّن",
+      data.status || "مؤكد"
     ];
 
     sheet.appendRow(newRow);
@@ -63,13 +66,13 @@ function doPost(e) {
     // تنسيق السطر الجديد
     formatLastRow(sheet);
 
-    // إرسال إشعار فوري لبوت تيليجرام
+    // إرسال إشعار تأكيد بقناة نشطاء جسور 7
     sendTelegramAlert(data);
 
     return ContentService.createTextOutput(JSON.stringify({ 
       status: "success", 
       id: newRow[0],
-      message: "تم حفظ التسجيل في Google Sheets وإشعار تيليجرام بنجاح" 
+      message: "تم إدراج المناقشة المقبولة واسم المصور في Google Sheets بنجاح" 
     })).setMimeType(ContentService.MimeType.JSON);
 
   } catch (error) {
@@ -89,6 +92,8 @@ function doGet(e) {
     club: "نادي الجسور الجامعي",
     service: "خدمة توثيق مناقشات التخرج 2026",
     maxPerDay: MAX_PER_DAY,
+    bot: "@JosourMonaqashatBot",
+    channel: "نُشَطَاء جُسُور |7|",
     days: ["2026-09-19", "2026-09-20", "2026-09-21", "2026-09-22"]
   })).setMimeType(ContentService.MimeType.JSON);
 }
@@ -101,7 +106,7 @@ function countRegistrationsForDay(sheet, dateStr) {
   if (data.length <= 1) return 0;
   let count = 0;
   for (let i = 1; i < data.length; i++) {
-    if (data[i][7] === dateStr) { // العمود رقم 8 هو يوم المناقشة
+    if (data[i][9] === dateStr) { // العمود رقم 10 هو يوم المناقشة
       count++;
     }
   }
@@ -109,7 +114,7 @@ function countRegistrationsForDay(sheet, dateStr) {
 }
 
 /**
- * فتح الورقة المخصصة أو إنشاؤها وتنسيقها بألوان نادي الجسور
+ * فتح الورقة المخصصة أو إنشاؤها وتنسيقها بألوان وهوية نادي الجسور
  */
 function getOrCreateSheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -118,32 +123,35 @@ function getOrCreateSheet() {
   if (!sheet) {
     sheet = ss.insertSheet(SHEET_NAME);
     
-    // عناوين الأعمدة
+    // عناوين الأعمدة الخمسة عشر
     const headers = [
       "رمز الطلب",
-      "تاريخ التسجيل",
+      "تاريخ القبول / التسجيل",
       "الاسم واللقب",
       "التخصص",
       "عنوان المذكرة",
-      "لجنة المناقشة",
+      "رئيس اللجنة",
+      "الأستاذ المشرف",
+      "الأستاذ المناقش",
       "القاعة",
       "يوم المناقشة",
       "التوقيت",
       "رقم الهاتف",
       "معرف التيليجرام",
+      "المصور المتكفل بالتصوير",
       "الحالة"
     ];
 
     sheet.appendRow(headers);
 
-    // ترويسة ذهبية وخط كوفي/نسخي أنيق
+    // ترويسة نيلي وذهب ملكي
     const headerRange = sheet.getRange(1, 1, 1, headers.length);
     headerRange.setBackground("#0d1a2d");
     headerRange.setFontColor("#eab308");
     headerRange.setFontWeight("bold");
     headerRange.setHorizontalAlignment("center");
     headerRange.setFontSize(11);
-    sheet.setRowHeight(1, 35);
+    sheet.setRowHeight(1, 36);
     sheet.setRightToLeft(true);
 
     // ضبط عرض الأعمدة تلقائياً
@@ -160,7 +168,7 @@ function getOrCreateSheet() {
  */
 function formatLastRow(sheet) {
   const lastRow = sheet.getLastRow();
-  const range = sheet.getRange(lastRow, 1, 1, 12);
+  const range = sheet.getRange(lastRow, 1, 1, 15);
   range.setVerticalAlignment("middle");
   range.setHorizontalAlignment("center");
   sheet.setRowHeight(lastRow, 28);
@@ -171,10 +179,15 @@ function formatLastRow(sheet) {
   } else {
     range.setBackground("#ffffff");
   }
+
+  // تمييز خلية اسم المصور بلون زمردي خفيف
+  const photographerCell = sheet.getRange(lastRow, 14);
+  photographerCell.setFontWeight("bold");
+  photographerCell.setFontColor("#065f46");
 }
 
 /**
- * إرسال إشعار فوري ومنسق عبر بوت تيليجرام
+ * إرسال إشعار فوري بقناة نشطاء جسور 7 عند قبول الطلب وتعيين المصور
  */
 function sendTelegramAlert(data) {
   if (!TELEGRAM_CONFIG.BOT_TOKEN || !TELEGRAM_CONFIG.CHAT_ID) return;
@@ -189,19 +202,22 @@ function sendTelegramAlert(data) {
   const dayLabel = dateLabels[data.defenseDate] || data.defenseDate;
 
   const message = 
-`🎓 *تسجيل جديد لتوثيق مناقشة — نادي الجسور*
+`✅ *تم قبول طلب توثيق مناقشة وتعيين المصور — نادي الجسور*
 
 👤 *الطالب:* ${data.fullName}
 📚 *التخصص:* ${data.specialty}
 📖 *عنوان المذكرة:* ${data.thesisTitle}
-👥 *اللجنة:* ${data.committeeMembers}
+👨‍🏫 *رئيس اللجنة:* ${data.committeePresident || 'غير محدد'}
+👨‍🏫 *الأستاذ المشرف:* ${data.supervisor || 'غير محدد'}
+👨‍🏫 *الأستاذ المناقش:* ${data.examiner || 'غير محدد'}
 🏛️ *القاعة:* ${data.defenseHall}
 📅 *الموعد:* ${dayLabel}
 ⏰ *التوقيت:* ${data.defenseTime}
 📞 *الهاتف:* \`${data.phoneNumber}\`
 💬 *التيليجرام:* ${data.telegramUser}
+📷 *المصور المتكفل بالتصوير:* *${data.photographerName || 'لم يُعيّن'}*
 🏷️ *رمز الطلب:* \`${data.id || "JSR"}\`
-⚡ *الحالة:* قيد المراجعة في المقر`;
+📊 *الحالة:* أُدرجت المناقشة تلقائياً في Google Sheet 🟢`;
 
   const url = "https://api.telegram.org/bot" + TELEGRAM_CONFIG.BOT_TOKEN + "/sendMessage";
 
