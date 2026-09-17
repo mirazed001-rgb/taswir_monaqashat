@@ -727,11 +727,66 @@ async function confirmAcceptance() {
     }).catch(e => console.warn('Firebase update notice:', e));
   }
 
-  // 2. إرسال إشعار فوري لقناة نشطاء جسور 7 بقبول الطلب وتعيين المصور
+  // 2. إرسال فوري وتلقائي إلى Google Sheet عبر Webhook
+  const settings = getSettings();
+  if (settings.webhookUrl) {
+    fetch(settings.webhookUrl, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(record)
+    }).catch(e => console.warn('Google Sheets auto-sync notice:', e));
+  }
+
+  // 3. إرسال إشعار فوري لقناة نشطاء جسور 7 بقبول الطلب وتعيين المصور
   sendAcceptanceTelegramNotification(record, settings);
 
   closeAcceptModal();
-  alert(`✅ تم بنجاح قبول طلب الطالب (${record.fullName}) وتعيين المصور (${photographerText}) بنجاح!`);
+  alert(`✅ تم بنجاح قبول طلب الطالب (${record.fullName}) وتعيين المصور (${photographerText})، وأُرسلت المعلومات تلقائياً إلى Google Sheet!`);
+}
+
+// دالة إرسال كافة المناقشات تلقائياً وبضغطة واحدة إلى Google Sheet
+async function syncAllToGoogleSheets() {
+  const settings = getSettings();
+  if (!settings.webhookUrl) {
+    alert('يرجى وضع رابط تطبيق الويب (Google Apps Script Webhook URL) في نافذة الإعدادات لتوجيه البيانات تلقائياً لجدولك.');
+    openSettingsModal();
+    return;
+  }
+
+  const records = getRecords();
+  if (records.length === 0) {
+    alert('لا توجد مناقشات مسجلة حالياً.');
+    return;
+  }
+
+  const btn = document.getElementById('syncAllSheetsBtn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span>⏳</span> جاري الإرسال التلقائي...';
+  }
+
+  let sent = 0;
+  for (const r of records) {
+    try {
+      await fetch(settings.webhookUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(r)
+      });
+      sent++;
+    } catch(e) {
+      console.warn('Sync error:', e);
+    }
+  }
+
+  if (btn) {
+    btn.disabled = false;
+    btn.innerHTML = '<span>🔄</span> إرسال تلقائي لـ Google Sheet';
+  }
+
+  alert(`✅ تم بنجاح إرسال جميع المناقشات (${sent}) تلقائياً إلى جدول Google Sheet! تفقد جدولك الآن.`);
 }
 
 function changeStatus(recordId, newStatus) {
