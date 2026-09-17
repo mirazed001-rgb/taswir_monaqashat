@@ -14,9 +14,9 @@ import urllib.parse
 # إعداد التسجيل
 logging.basicConfig(level=logging.INFO, format='[%(asctime)s] %(levelname)s: %(message)s')
 
-BOT_TOKEN = os.getenv("JOSOUR_BOT_TOKEN", "8509092860:AAET4WCXrx2MD2QVb0yrRCql5lAXoy-UhyY")
-CHAT_ID = os.getenv("JOSOUR_CHAT_ID", "-1004497345814")  # حقيبة نشطاء جسور
-TOPIC_ID = int(os.getenv("JOSOUR_TOPIC_ID", "30"))       # موضوع تقارير المداومة
+BOT_TOKEN = os.getenv("JOSOUR_BOT_TOKEN", "8973353664:AAHzThHxzp69jYh-A_fCU6T3U9Q-kJFf9f0") # بوت توثيق مناقشات جسور (@JosourMonaqashatBot)
+CHAT_ID = os.getenv("JOSOUR_CHAT_ID", "-1002534160494")  # نُشَطَاء جُسُور |7|
+TOPIC_ID = None
 
 # قائمة المشرفين المصرح لهم بالاستعلام
 AUTHORIZED_USER_IDS = [5795723111]  # آية (@Ayazaidi)
@@ -38,14 +38,16 @@ def send_telegram_alert(record):
 👤 *الطالب:* {record.get('fullName', '')}
 📚 *التخصص:* {record.get('specialty', '')}
 📖 *عنوان المذكرة:* {record.get('thesisTitle', '')}
-👥 *اللجنة:* {record.get('committeeMembers', '')}
+👨‍🏫 *رئيس اللجنة:* {record.get('committeePresident', 'غير محدد')}
+👨‍🏫 *الأستاذ المشرف:* {record.get('supervisor', 'غير محدد')}
+👨‍🏫 *الأستاذ المناقش:* {record.get('examiner', 'غير محدد')}
 🏛️ *القاعة:* {record.get('defenseHall', '')}
 📅 *الموعد:* {day_str}
 ⏰ *التوقيت:* {record.get('defenseTime', '')}
 📞 *الهاتف:* `{record.get('phoneNumber', '')}`
 💬 *التيليجرام:* {record.get('telegramUser', '')}
 🏷️ *رمز الطلب:* `{record.get('id', 'JSR')}`
-⚡ *الحالة:* قيد المراجعة في المقر"""
+⚡ *الحالة:* قيد المراجعة (بانتظار قبول الطلب وتعيين المصور)"""
 
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
     payload = {
