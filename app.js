@@ -347,7 +347,6 @@ function sendTelegramNotification(record, settings) {
 🏷️ <b>رمز الطلب:</b> <code>${record.id}</code>
 ⚡ <b>الحالة:</b> قيد المراجعة في المقر`;
 
-  const sheetUrl = settings.sheetUrl || "https://docs.google.com/spreadsheets/d/1KDKJxfzQ3kYwpOsvkgRoRg7a9FuBcihIvgoajNPp730/edit?gid=0#gid=0";
   const acceptUrl = `https://mirazed001-rgb.github.io/taswir_monaqashat/?accept=${encodeURIComponent(record.id)}`;
 
   const url = `https://api.telegram.org/bot${settings.botToken}/sendMessage`;
@@ -361,10 +360,6 @@ function sendTelegramNotification(record, settings) {
           {
             text: "✅ قبول المناقشة وتعيين المصور",
             url: acceptUrl
-          },
-          {
-            text: "📊 جدول Google Sheet",
-            url: sheetUrl
           }
         ]
       ]
@@ -394,7 +389,6 @@ function sendAcceptanceTelegramNotification(record, settings) {
   };
 
   const formattedDate = dateMap[record.defenseDate] || record.defenseDate;
-  const sheetUrl = settings.sheetUrl || "https://docs.google.com/spreadsheets/d/1KDKJxfzQ3kYwpOsvkgRoRg7a9FuBcihIvgoajNPp730/edit?gid=0#gid=0";
 
   const msgHtml = 
 `✅ <b>تم قبول طلب توثيق مناقشة — نادي الجسور</b>
@@ -405,23 +399,13 @@ function sendAcceptanceTelegramNotification(record, settings) {
 🏛️ <b>القاعة:</b> ${escapeHtml(record.defenseHall)}
 📅 <b>الموعد:</b> ${formattedDate} | ⏰ <b>التوقيت:</b> ${record.defenseTime}
 📷 <b>المصور المتكفل بالتصوير:</b> <b>${escapeHtml(record.photographerName)}</b>
-📊 <b>الحالة:</b> تم القبول وتعيين المصور وإدراجها في Google Sheet 🟢`;
+📊 <b>الحالة:</b> تم تأكيد الطلب وتعيين المصور بنجاح 🟢`;
 
   const url = `https://api.telegram.org/bot${settings.botToken}/sendMessage`;
   const payload = {
     chat_id: settings.chatId,
     text: msgHtml,
-    parse_mode: 'HTML',
-    reply_markup: {
-      inline_keyboard: [
-        [
-          {
-            text: "📊 فتح جدول Google Sheet المباشر",
-            url: sheetUrl
-          }
-        ]
-      ]
-    }
+    parse_mode: 'HTML'
   };
 
   if (settings.topicId) {
@@ -743,27 +727,11 @@ async function confirmAcceptance() {
     }).catch(e => console.warn('Firebase update notice:', e));
   }
 
-  // 2. إدراج فوري وتلقائي في Google Sheet عبر Webhook
-  const settings = getSettings();
-  if (settings.webhookUrl) {
-    try {
-      await fetch(settings.webhookUrl, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(record)
-      });
-      console.log('تم إرسال المناقشة المقبولة إلى Google Sheets بنجاح.');
-    } catch (err) {
-      console.warn('Google Sheets Webhook attempt completed/handled:', err);
-    }
-  }
-
-  // 3. إرسال إشعار فوري لقناة نشطاء جسور 7 بقبول الطلب وتعيين المصور
+  // 2. إرسال إشعار فوري لقناة نشطاء جسور 7 بقبول الطلب وتعيين المصور
   sendAcceptanceTelegramNotification(record, settings);
 
   closeAcceptModal();
-  alert(`✅ تم بنجاح قبول طلب الطالب (${record.fullName}) وإدراجه تلقائياً في Google Sheet بنجاح!`);
+  alert(`✅ تم بنجاح قبول طلب الطالب (${record.fullName}) وتعيين المصور (${photographerText}) بنجاح!`);
 }
 
 function changeStatus(recordId, newStatus) {
