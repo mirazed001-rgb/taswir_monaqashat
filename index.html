@@ -44,7 +44,7 @@
       <!-- ============================================== -->
       <section id="registerSection" class="content-section active-section">
 
-        <!-- بطاقة الترحيب والتنويه -->
+        <!-- بطاقة الترحيب -->
         <div class="intro-card">
           <div class="intro-header">
             <span class="congrats-tag">🎓 مبارك التخرج مقدماً</span>
@@ -52,17 +52,6 @@
             <p class="intro-desc">
               يسعد أعضاء نادي الجسور مرافقتكم في هذه المحطة الجامعية المميزة لتوثيق مناقشة مذكرتكم وحفظ ذكراها بأفضل شكل متاح.
             </p>
-          </div>
-
-          <!-- التنويه التوضيحي الهام -->
-          <div class="notice-box">
-            <div class="notice-icon">📢</div>
-            <div class="notice-content">
-              <strong>تنويه توضيحي للطلبة الأعزاء:</strong>
-              <p>
-                يمتلك نادي الجسور بعض أجهزة التصوير الخاصة به، ولكن نظراً لتزامن المناقشات وكثافتها في أوقات متقاربة، وحرصاً منا على خدمة أكبر عدد ممكن من الزملاء وتغطية طلباتهم، فإننا نعتمد على استخدام هواتفكم الخاصة في عملية التصوير، بينما يتكفل أعضاء النادي بالإشراف الكامل وتثبيت الأجهزة ومتابعة التسجيل طيلة المناقشة.
-              </p>
-            </div>
           </div>
         </div>
 
@@ -164,9 +153,21 @@
               <input type="text" id="thesisTitle" placeholder="اكتب العنوان الكامل لمذكرة التخرج" required>
             </div>
 
-            <div class="form-group col-12">
-              <label for="committeeMembers">أعضاء لجنة المناقشة أو اسم اللجنة <span class="req">*</span></label>
-              <input type="text" id="committeeMembers" placeholder="مثال: د. فلان (رئيساً)، أ.د فلان (مشرفاً)، د. فلان (ممتحناً)" required>
+            <div class="form-row">
+              <div class="form-group col-4">
+                <label for="committeePresident">رئيس لجنة المناقشة <span class="req">*</span></label>
+                <input type="text" id="committeePresident" placeholder="مثال: د. فلان بن فلان" required>
+              </div>
+
+              <div class="form-group col-4">
+                <label for="supervisor">الأستاذ المشرف <span class="req">*</span></label>
+                <input type="text" id="supervisor" placeholder="مثال: أ.د فلان بن فلان" required>
+              </div>
+
+              <div class="form-group col-4">
+                <label for="examiner">الأستاذ المناقش (الممتحن) <span class="req">*</span></label>
+                <input type="text" id="examiner" placeholder="مثال: د. فلان بن فلان" required>
+              </div>
             </div>
 
             <div class="form-row">
@@ -214,6 +215,17 @@
             </div>
 
           </form>
+        </div>
+
+        <!-- التنويه التوضيحي الهام في نهاية الصفحة -->
+        <div class="notice-box" style="margin-top: 20px;">
+          <div class="notice-icon">📢</div>
+          <div class="notice-content">
+            <strong>تنويه توضيحي للطلبة الأعزاء:</strong>
+            <p>
+              يمتلك نادي الجسور بعض أجهزة التصوير الخاصة به، ولكن نظراً لتزامن المناقشات وكثافتها في أوقات متقاربة، وحرصاً منا على خدمة أكبر عدد ممكن من الزملاء وتغطية طلباتهم، فإننا نعتمد على استخدام هواتفكم الخاصة في عملية التصوير، بينما يتكفل أعضاء النادي بالإشراف الكامل وتثبيت الأجهزة ومتابعة التسجيل طيلة المناقشة.
+            </p>
+          </div>
         </div>
 
       </section>
@@ -335,6 +347,7 @@
                   <th>القاعة</th>
                   <th>اليوم والتوقيت</th>
                   <th>الهاتف والتيليجرام</th>
+                  <th>المصور المتكفل</th>
                   <th>الحالة</th>
                   <th class="no-print">إجراءات</th>
                 </tr>
@@ -373,6 +386,34 @@
       </div>
 
       <button type="button" class="modal-btn" onclick="closeSuccessModal()">إغلاق ومتابعة</button>
+    </div>
+  </div>
+
+  <!-- نافذة قبول الطلب وتعيين المصور -->
+  <div class="modal" id="acceptModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>✅ قبول طلب التصوير وتعيين المصور</h3>
+        <button type="button" class="close-btn" onclick="closeAcceptModal()">×</button>
+      </div>
+      <div class="modal-body" style="text-align: right;">
+        <p class="settings-desc">عند تأكيد قبول هذا الطلب، سيتم إدراج المناقشة تلقائياً في جدول Google Sheet وإشعار قناة نشطاء جسور 7:</p>
+        
+        <div class="summary-box" id="acceptStudentSummary" style="margin-bottom: 16px;">
+          <!-- يعبأ تلقائياً ببيانات الطالب -->
+        </div>
+
+        <div class="form-group">
+          <label for="photographerInput">اسم المصور المتكفل بالتصوير <span class="req">*</span></label>
+          <input type="text" id="photographerInput" placeholder="مثال: عبد الرحيم / أسامة / عبد الرؤوف..." required>
+          <small class="field-hint">سيتم تسجيل اسم المصور في جدول Google Sheet ورسالة القناة وتحديث الحالة إلى «مؤكد».</small>
+        </div>
+
+        <div class="modal-actions" style="margin-top: 20px;">
+          <button type="button" class="btn-save" onclick="confirmAcceptance()">تأكيد القبول والإدراج في Google Sheet</button>
+          <button type="button" class="btn-cancel" onclick="closeAcceptModal()">إلغاء</button>
+        </div>
+      </div>
     </div>
   </div>
 
