@@ -49,7 +49,7 @@ def send_telegram_alert(record):
 🏷️ *رمز الطلب:* `{record.get('id', 'JSR')}`
 ⚡ *الحالة:* قيد المراجعة (بانتظار قبول الطلب وتعيين المصور)"""
 
-    sheet_url = "https://docs.google.com/spreadsheets/d/1DmuSOLyNDck0aeBtkapptSn2KdqyVzpiS2DOI6VKFBE/edit?gid=0#gid=0"
+    sheet_url = "https://docs.google.com/spreadsheets/d/1KDKJxfzQ3kYwpOsvkgRoRg7a9FuBcihIvgoajNPp730/edit?gid=0#gid=0"
     rec_id = record.get('id', 'JSR')
     accept_url = f"https://mirazed001-rgb.github.io/taswir_monaqashat/?accept={rec_id}"
 
@@ -98,7 +98,7 @@ def send_acceptance_alert(record):
         "2026-09-22": "الثلاثاء 22 سبتمبر 2026"
     }
     day_str = date_labels.get(record.get("defenseDate", ""), record.get("defenseDate", ""))
-    sheet_url = "https://docs.google.com/spreadsheets/d/1DmuSOLyNDck0aeBtkapptSn2KdqyVzpiS2DOI6VKFBE/edit?gid=0#gid=0"
+    sheet_url = "https://docs.google.com/spreadsheets/d/1KDKJxfzQ3kYwpOsvkgRoRg7a9FuBcihIvgoajNPp730/edit?gid=0#gid=0"
 
     text = f"""✅ *تم قبول طلب توثيق مناقشة — نادي الجسور*
 
