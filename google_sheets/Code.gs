@@ -116,50 +116,74 @@ function countRegistrationsForDay(sheet, dateStr) {
 /**
  * فتح الورقة المخصصة أو إنشاؤها وتنسيقها بألوان وهوية نادي الجسور
  */
-function getOrCreateSheet() {
+/**
+ * دالة تهيئة وبناء عناوين الجدول تلقائياً بألوان نادي الجسور
+ * تعمل فور فتح الشيت أو عند الضغط على زر تشغيل (Run)
+ */
+function onOpen() {
+  setupHeaders();
+}
+
+function setupHeaders() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = ss.getSheetByName(SHEET_NAME);
+  const sheet = ss.getSheets()[0];
+  
+  sheet.setName("سجل المناقشات المقبولة");
+  sheet.setRightToLeft(true);
 
-  if (!sheet) {
-    sheet = ss.insertSheet(SHEET_NAME);
-    
-    // عناوين الأعمدة الخمسة عشر
-    const headers = [
-      "رمز الطلب",
-      "تاريخ القبول / التسجيل",
-      "الاسم واللقب",
-      "التخصص",
-      "عنوان المذكرة",
-      "رئيس اللجنة",
-      "الأستاذ المشرف",
-      "الأستاذ المناقش",
-      "القاعة",
-      "يوم المناقشة",
-      "التوقيت",
-      "رقم الهاتف",
-      "معرف التيليجرام",
-      "المصور المتكفل بالتصوير",
-      "الحالة"
-    ];
+  // عناوين الأعمدة الخمسة عشر المفصلة
+  const headers = [
+    "رمز الطلب",
+    "تاريخ ووقت القبول",
+    "اسم الطالب ولقبه",
+    "التخصص والشعبة",
+    "عنوان مذكرة التخرج",
+    "رئيس لجنة المناقشة",
+    "الأستاذ المشرف",
+    "الأستاذ المناقش (الممتحن)",
+    "القاعة / المدرج",
+    "يوم المناقشة",
+    "التوقيت",
+    "رقم الهاتف",
+    "معرف التيليجرام",
+    "المصور المتكفل بالتصوير",
+    "الحالة"
+  ];
 
-    sheet.appendRow(headers);
+  // تعيين العناوين في الصف الأول
+  const headerRange = sheet.getRange(1, 1, 1, headers.length);
+  headerRange.setValues([headers]);
 
-    // ترويسة نيلي وذهب ملكي
-    const headerRange = sheet.getRange(1, 1, 1, headers.length);
-    headerRange.setBackground("#0d1a2d");
-    headerRange.setFontColor("#eab308");
-    headerRange.setFontWeight("bold");
-    headerRange.setHorizontalAlignment("center");
-    headerRange.setFontSize(11);
-    sheet.setRowHeight(1, 36);
-    sheet.setRightToLeft(true);
+  // التنسيق الملكي لنادي الجسور (كحلي ملكي داكن مع كتابة ذهبية بارزة)
+  headerRange.setBackground("#0d1a2d");
+  headerRange.setFontColor("#eab308");
+  headerRange.setFontWeight("bold");
+  headerRange.setHorizontalAlignment("center");
+  headerRange.setVerticalAlignment("middle");
+  headerRange.setFontSize(11);
+  sheet.setRowHeight(1, 38);
 
-    // ضبط عرض الأعمدة تلقائياً
-    for (let c = 1; c <= headers.length; c++) {
-      sheet.autoResizeColumn(c);
-    }
+  // ضبط عرض الأعمدة تلقائياً لتناسب القراءة والطباعة
+  const colWidths = [110, 160, 160, 180, 260, 150, 150, 150, 130, 120, 90, 130, 130, 190, 100];
+  for (let c = 1; c <= colWidths.length; c++) {
+    sheet.setColumnWidth(c, colWidths[c - 1]);
   }
 
+  // تجميد الصف الأول ليبقى ثابتاً عند التمرير
+  sheet.setFrozenRows(1);
+}
+
+/**
+ * فتح الورقة المخصصة أو تهيئتها فوراً
+ */
+function getOrCreateSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheets()[0];
+  
+  // إذا كانت الورقة فارغة في الصف الأول، نهيئ العناوين فوراً
+  if (sheet.getLastRow() === 0) {
+    setupHeaders();
+  }
   return sheet;
 }
 
