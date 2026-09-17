@@ -49,23 +49,95 @@ def send_telegram_alert(record):
 🏷️ *رمز الطلب:* `{record.get('id', 'JSR')}`
 ⚡ *الحالة:* قيد المراجعة (بانتظار قبول الطلب وتعيين المصور)"""
 
+    sheet_url = "https://docs.google.com/spreadsheets/d/1DmuSOLyNDck0aeBtkapptSn2KdqyVzpiS2DOI6VKFBE/edit?gid=0#gid=0"
+    rec_id = record.get('id', 'JSR')
+    accept_url = f"https://mirazed001-rgb.github.io/taswir_monaqashat/?accept={rec_id}"
+
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
     payload = {
         "chat_id": CHAT_ID,
         "text": text,
         "parse_mode": "Markdown",
-        "message_thread_id": TOPIC_ID
+        "reply_markup": {
+            "inline_keyboard": [
+                [
+                    {
+                        "text": "✅ قبول المناقشة وتعيين المصور",
+                        "url": accept_url
+                    },
+                    {
+                        "text": "📊 جدول Google Sheet",
+                        "url": sheet_url
+                    }
+                ]
+            ]
+        }
     }
+    if TOPIC_ID:
+        payload["message_thread_id"] = TOPIC_ID
 
     try:
         data = json.dumps(payload).encode('utf-8')
         req = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/json'})
         with urllib.request.urlopen(req, timeout=10) as response:
             res = response.read().decode('utf-8')
-            logging.info("Telegram alert sent successfully.")
+            logging.info("Telegram alert sent successfully with action buttons.")
             return json.loads(res)
     except Exception as e:
         logging.error(f"Failed to send Telegram alert: {e}")
+        return None
+
+def send_acceptance_alert(record):
+    """
+    إرسال إشعار تأكيد قبول المناقشة وتعيين المصور إلى قناة نشطاء جسور 7
+    """
+    date_labels = {
+        "2026-09-19": "السبت 19 سبتمبر 2026",
+        "2026-09-20": "الأحد 20 سبتمبر 2026",
+        "2026-09-21": "الاثنين 21 سبتمبر 2026",
+        "2026-09-22": "الثلاثاء 22 سبتمبر 2026"
+    }
+    day_str = date_labels.get(record.get("defenseDate", ""), record.get("defenseDate", ""))
+    sheet_url = "https://docs.google.com/spreadsheets/d/1DmuSOLyNDck0aeBtkapptSn2KdqyVzpiS2DOI6VKFBE/edit?gid=0#gid=0"
+
+    text = f"""✅ *تم قبول طلب توثيق مناقشة — نادي الجسور*
+
+👤 *الطالب:* {record.get('fullName', '')}
+📚 *التخصص:* {record.get('specialty', '')}
+📖 *عنوان المذكرة:* {record.get('thesisTitle', '')}
+🏛️ *القاعة:* {record.get('defenseHall', '')}
+📅 *الموعد:* {day_str} | ⏰ *التوقيت:* {record.get('defenseTime', '')}
+📷 *المصور المتكفل بالتصوير:* *{record.get('photographerName', 'غير محدد')}*
+📊 *الحالة:* تم القبول وتعيين المصور وإدراجها في Google Sheet 🟢"""
+
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+    payload = {
+        "chat_id": CHAT_ID,
+        "text": text,
+        "parse_mode": "Markdown",
+        "reply_markup": {
+            "inline_keyboard": [
+                [
+                    {
+                        "text": "📊 فتح جدول Google Sheet المباشر",
+                        "url": sheet_url
+                    }
+                ]
+            ]
+        }
+    }
+    if TOPIC_ID:
+        payload["message_thread_id"] = TOPIC_ID
+
+    try:
+        data = json.dumps(payload).encode('utf-8')
+        req = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/json'})
+        with urllib.request.urlopen(req, timeout=10) as response:
+            res = response.read().decode('utf-8')
+            logging.info("Telegram acceptance alert sent successfully.")
+            return json.loads(res)
+    except Exception as e:
+        logging.error(f"Failed to send Telegram acceptance alert: {e}")
         return None
 
 def test_connection():
