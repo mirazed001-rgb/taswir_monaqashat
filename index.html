@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>منصة توثيق مناقشات التخرج — نادي الجسور</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <!-- مكتبات فايربيس السحابية -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+  <!-- شريط الترويسة العلوي -->
+  <header class="main-header">
+    <div class="container header-container">
+      <div class="logo-area">
+        <img src="logo.png" alt="شعار نادي الجسور" class="club-logo" id="headerLogo">
+        <div class="title-group">
+          <span class="club-badge">نادي الجسور الجامعي</span>
+          <h1 class="service-title">خدمة توثيق مناقشات التخرج</h1>
+        </div>
+      </div>
+      <nav class="header-nav">
+        <button type="button" class="nav-tab active" id="tabRegisterBtn" onclick="showSection('register')">
+          <span class="icon">✍️</span> تسجيل مناقشة
+        </button>
+        <button type="button" class="nav-tab" id="tabAdminBtn" onclick="showSection('admin')">
+          <span class="icon">🔒</span> لوحة الإدارة
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- المحتوى الرئيسي -->
+  <main class="main-content">
+    <div class="container">
+
+      <!-- ============================================== -->
+      <!-- قسم تسجيل المناقشة الموجه للطلبة -->
+      <!-- ============================================== -->
+      <section id="registerSection" class="content-section active-section">
+
+        <!-- بطاقة الترحيب والتنويه -->
+        <div class="intro-card">
+          <div class="intro-header">
+            <span class="congrats-tag">🎓 مبارك التخرج مقدماً</span>
+            <h2>مبادرة نادي الجسور لتوثيق لحظة تخرجك</h2>
+            <p class="intro-desc">
+              يسعد أعضاء نادي الجسور مرافقتكم في هذه المحطة الجامعية المميزة لتوثيق مناقشة مذكرتكم وحفظ ذكراها بأفضل شكل متاح.
+            </p>
+          </div>
+
+          <!-- التنويه التوضيحي الهام -->
+          <div class="notice-box">
+            <div class="notice-icon">📢</div>
+            <div class="notice-content">
+              <strong>تنويه توضيحي للطلبة الأعزاء:</strong>
+              <p>
+                يمتلك نادي الجسور بعض أجهزة التصوير الخاصة به، ولكن نظراً لتزامن المناقشات وكثافتها في أوقات متقاربة، وحرصاً منا على خدمة أكبر عدد ممكن من الزملاء وتغطية طلباتهم، فإننا نعتمد على استخدام هواتفكم الخاصة في عملية التصوير، بينما يتكفل أعضاء النادي بالإشراف الكامل وتثبيت الأجهزة ومتابعة التسجيل طيلة المناقشة.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- بطاقة الشروط الستة الإلزامية -->
+        <div class="card conditions-card">
+          <div class="card-header">
+            <span class="badge-step">الخطوة 1 من 2</span>
+            <h3>شروط وضوابط الاستفادة من الخدمة</h3>
+            <p class="section-subtext">يرجى قراءة الشروط الآتية وتأكيد الموافقة عليها بالكامل عبر تفعيل خانات الاختيار:</p>
+          </div>
+
+          <div class="conditions-grid">
+
+            <label class="condition-item" for="cond1">
+              <input type="checkbox" id="cond1" class="cond-check" onchange="validateConditions()">
+              <div class="cond-custom-check"></div>
+              <div class="cond-text">
+                <strong>1. إحضار الهاتف الخاص يوم المناقشة</strong>
+                <span>إحضار الهاتف المعتمد للتصوير شخصياً إلى المقر في الموعد المحدد.</span>
+              </div>
+            </label>
+
+            <label class="condition-item" for="cond2">
+              <input type="checkbox" id="cond2" class="cond-check" onchange="validateConditions()">
+              <div class="cond-custom-check"></div>
+              <div class="cond-text">
+                <strong>2. شحن بطارية الهاتف بنسبة 100%</strong>
+                <span>التأكد من شحن بطارية الهاتف بالكامل مسبقاً لضمان عدم انقطاع التسجيل.</span>
+              </div>
+            </label>
+
+            <label class="condition-item" for="cond3">
+              <input type="checkbox" id="cond3" class="cond-check" onchange="validateConditions()">
+              <div class="cond-custom-check"></div>
+              <div class="cond-text">
+                <strong>3. توفر مساحة تخزين كافية (15 جيجابايت)</strong>
+                <span>أن يحتوي الهاتف على سعة تخزين فارغة لا تقل عن 15 جيجابايت لحفظ المرئية.</span>
+              </div>
+            </label>
+
+            <label class="condition-item" for="cond4">
+              <input type="checkbox" id="cond4" class="cond-check" onchange="validateConditions()">
+              <div class="cond-custom-check"></div>
+              <div class="cond-text">
+                <strong>4. ترك الهاتف للنادي لفترة وجيزة بعد المناقشة</strong>
+                <span>الموافقة على ترك الهاتف بحوزة فريق النادي بعد المناقشة لنقل المرئية لجهاز النادي.</span>
+              </div>
+            </label>
+
+            <label class="condition-item" for="cond5">
+              <input type="checkbox" id="cond5" class="cond-check" onchange="validateConditions()">
+              <div class="cond-custom-check"></div>
+              <div class="cond-text">
+                <strong>5. المرور على مقر النادي فور القدوم إلى الكلية</strong>
+                <span>الحضور إلى مقر نادي الجسور للتنسيق مع الأعضاء حول ترتيبات ومكان المناقشة.</span>
+              </div>
+            </label>
+
+            <label class="condition-item" for="cond6">
+              <input type="checkbox" id="cond6" class="cond-check" onchange="validateConditions()">
+              <div class="cond-custom-check"></div>
+              <div class="cond-text">
+                <strong>6. إبلاغ النادي حضورياً بأي مستجدات أو تغييرات</strong>
+                <span>في حال حدوث أي خلل أو تغيير في القاعة أو التوقيت، يرجى الحضور للمقر لإعلامنا فوراً.</span>
+              </div>
+            </label>
+
+          </div>
+
+          <div id="conditionsAlert" class="conditions-alert">
+            <span>⚠️ يجب تفعيل الموافقة على جميع الشروط الستة أعلاه لفتح استمارة التسجيل.</span>
+          </div>
+        </div>
+
+        <!-- بطاقة استمارة إدخال البيانات -->
+        <div class="card form-card" id="formCard">
+          <div class="card-header">
+            <span class="badge-step">الخطوة 2 من 2</span>
+            <h3>بيانات المناقشة والتواصل</h3>
+            <p class="section-subtext">يرجى إدخال البيانات بدقة متناهية لضمان حسن التنظيم والتواجد في الوقت المحدد:</p>
+          </div>
+
+          <form id="registrationForm" onsubmit="handleFormSubmit(event)">
+
+            <div class="form-row">
+              <div class="form-group col-6">
+                <label for="fullName">الاسم واللقب <span class="req">*</span></label>
+                <input type="text" id="fullName" placeholder="مثال: عبد القادر بن عيسى" required>
+              </div>
+
+              <div class="form-group col-6">
+                <label for="specialty">التخصص / الشعبة <span class="req">*</span></label>
+                <input type="text" id="specialty" placeholder="مثال: ماستر ذكاء اصطناعي / إعلام آلي" required>
+              </div>
+            </div>
+
+            <div class="form-group col-12">
+              <label for="thesisTitle">عنوان المذكرة <span class="req">*</span></label>
+              <input type="text" id="thesisTitle" placeholder="اكتب العنوان الكامل لمذكرة التخرج" required>
+            </div>
+
+            <div class="form-group col-12">
+              <label for="committeeMembers">أعضاء لجنة المناقشة أو اسم اللجنة <span class="req">*</span></label>
+              <input type="text" id="committeeMembers" placeholder="مثال: د. فلان (رئيساً)، أ.د فلان (مشرفاً)، د. فلان (ممتحناً)" required>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group col-4">
+                <label for="defenseHall">القاعة أو المدرج <span class="req">*</span></label>
+                <input type="text" id="defenseHall" placeholder="مثال: قاعة 06 / مدرج ج" required>
+              </div>
+
+              <div class="form-group col-4">
+                <label for="defenseDate">يوم المناقشة <span class="req">*</span></label>
+                <select id="defenseDate" required onchange="handleDateChange()">
+                  <option value="" disabled selected>-- اختر تاريخ المناقشة --</option>
+                  <option value="2026-09-19">السبت 19 سبتمبر 2026</option>
+                  <option value="2026-09-20">الأحد 20 سبتمبر 2026</option>
+                  <option value="2026-09-21">الاثنين 21 سبتمبر 2026</option>
+                  <option value="2026-09-22">الثلاثاء 22 سبتمبر 2026</option>
+                </select>
+                <div id="dayQuotaBadge" class="quota-badge">الحد الأقصى: 5 مناقشات في اليوم</div>
+              </div>
+
+              <div class="form-group col-4">
+                <label for="defenseTime">توقيت المناقشة بالتحديد <span class="req">*</span></label>
+                <input type="time" id="defenseTime" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group col-6">
+                <label for="phoneNumber">رقم الهاتف <span class="req">*</span></label>
+                <input type="tel" id="phoneNumber" placeholder="مثال: 0661234567" required dir="ltr" style="text-align: right;">
+              </div>
+
+              <div class="form-group col-6">
+                <label for="telegramUser">معرف التيليجرام <span class="req">*</span></label>
+                <input type="text" id="telegramUser" placeholder="@username" required dir="ltr" style="text-align: right;">
+              </div>
+            </div>
+
+            <!-- زر الإرسال -->
+            <div class="form-actions">
+              <button type="submit" class="submit-btn" id="submitBtn" disabled>
+                <span class="btn-icon">📩</span> تأكيد وإرسال التسجيل
+              </button>
+              <p class="privacy-note">🔒 بياناتك محفوظة بحرص وتستخدم حصراً للتنسيق بينك وبين أعضاء نادي الجسور.</p>
+            </div>
+
+          </form>
+        </div>
+
+      </section>
+
+      <!-- ============================================== -->
+      <!-- قسم لوحة الإدارة والمتابعة للنادي -->
+      <!-- ============================================== -->
+      <section id="adminSection" class="content-section">
+
+        <!-- شاشة تسجيل الدخول بالرقم السري -->
+        <div class="admin-login-box" id="adminLoginBox">
+          <div class="lock-icon">🔐</div>
+          <h3>لوحة متابعة طلبات المناقشة</h3>
+          <p>هذا القسم مخصص لأعضاء ومشرفي نادي الجسور لإدارة وجدولة وتصدير المناقشات المسجلة.</p>
+          
+          <form onsubmit="handleAdminLogin(event)" class="login-form">
+            <div class="form-group">
+              <label for="adminPass">كلمة مرور الإدارة</label>
+              <input type="password" id="adminPass" placeholder="أدخل كلمة المرور" required>
+            </div>
+            <button type="submit" class="login-btn">دخول اللوحة</button>
+            <span id="loginError" class="login-error">كلمة المرور غير صحيحة، يرجى المحاولة مجدداً.</span>
+          </form>
+        </div>
+
+        <!-- محتوى اللوحة بعد التحقق -->
+        <div class="admin-dashboard" id="adminDashboard" style="display: none;">
+
+          <!-- ترويسة اللوحة وأزرار الإجراءات -->
+          <div class="dashboard-header">
+            <div>
+              <h2>لوحة إدارة وتنسيق المناقشات</h2>
+              <p class="dashboard-subtitle">متابعة لحظية وتحديث لحالات المناقشات للأيام الأربعة (19 — 22 سبتمبر)</p>
+            </div>
+            <div class="dashboard-top-actions">
+              <button type="button" class="action-btn export-btn" onclick="exportDataToCSV()">
+                <span>📊</span> تصدير إلى Excel
+              </button>
+              <button type="button" class="action-btn print-btn" onclick="printTableSchedule()">
+                <span>🖨️</span> طباعة الجدول
+              </button>
+              <button type="button" class="action-btn settings-btn" onclick="openSettingsModal()">
+                <span>⚙️</span> إعدادات الربط
+              </button>
+              <button type="button" class="action-btn logout-btn" onclick="handleAdminLogout()">
+                <span>🚪</span> خروج
+              </button>
+            </div>
+          </div>
+
+          <!-- بطاقات الإحصاءات والحصص اليومية -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <span class="stat-label">إجمالي الطلبات</span>
+              <span class="stat-value" id="statTotal">0</span>
+              <span class="stat-hint">طلب مسجل</span>
+            </div>
+            <div class="stat-card" id="cardDay19">
+              <span class="stat-label">19 سبتمبر</span>
+              <span class="stat-value"><span id="statDay19">0</span> / 5</span>
+              <span class="stat-hint" id="hintDay19">الأماكن المتاحة: 5</span>
+            </div>
+            <div class="stat-card" id="cardDay20">
+              <span class="stat-label">20 سبتمبر</span>
+              <span class="stat-value"><span id="statDay20">0</span> / 5</span>
+              <span class="stat-hint" id="hintDay20">الأماكن المتاحة: 5</span>
+            </div>
+            <div class="stat-card" id="cardDay21">
+              <span class="stat-label">21 سبتمبر</span>
+              <span class="stat-value"><span id="statDay21">0</span> / 5</span>
+              <span class="stat-hint" id="hintDay21">الأماكن المتاحة: 5</span>
+            </div>
+            <div class="stat-card" id="cardDay22">
+              <span class="stat-label">22 سبتمبر</span>
+              <span class="stat-value"><span id="statDay22">0</span> / 5</span>
+              <span class="stat-hint" id="hintDay22">الأماكن المتاحة: 5</span>
+            </div>
+          </div>
+
+          <!-- أدوات البحث والتصفية -->
+          <div class="filter-bar">
+            <div class="search-box">
+              <input type="text" id="adminSearchInput" placeholder="بحث بالاسم، التخصص، القاعة، الهاتف..." oninput="filterTable()">
+            </div>
+            <div class="filter-selects">
+              <select id="dayFilter" onchange="filterTable()">
+                <option value="all">جميع الأيام</option>
+                <option value="2026-09-19">19 سبتمبر</option>
+                <option value="2026-09-20">20 سبتمبر</option>
+                <option value="2026-09-21">21 سبتمبر</option>
+                <option value="2026-09-22">22 سبتمبر</option>
+              </select>
+              <select id="statusFilter" onchange="filterTable()">
+                <option value="all">جميع الحالات</option>
+                <option value="جديد">جديد</option>
+                <option value="مؤكد">مؤكد</option>
+                <option value="تم التصوير">تم التصوير</option>
+                <option value="تم نقل الفيديو">تم نقل الفيديو</option>
+                <option value="مكتمل">مكتمل</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- جدول المناقشات المنسق -->
+          <div class="table-wrapper" id="printableTableArea">
+            <div class="print-header-only">
+              <h3>نادي الجسور — جدول مواعيد وتغطية مناقشات التخرج</h3>
+              <p>موسم المناقشات: 19 - 22 سبتمبر 2026 | الحد الأقصى اليومي: 5 مناقشات</p>
+            </div>
+
+            <table class="data-table" id="defensesTable">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>الطالب</th>
+                  <th>التخصص</th>
+                  <th>عنوان المذكرة</th>
+                  <th>لجنة المناقشة</th>
+                  <th>القاعة</th>
+                  <th>اليوم والتوقيت</th>
+                  <th>الهاتف والتيليجرام</th>
+                  <th>الحالة</th>
+                  <th class="no-print">إجراءات</th>
+                </tr>
+              </thead>
+              <tbody id="tableBody">
+                <!-- يُملأ برمجياً عبر JavaScript -->
+              </tbody>
+            </table>
+            
+            <div id="noDataMessage" class="no-data" style="display: none;">
+              <span>📭 لا توجد طلبات مسجلة مطابقة حتى الآن.</span>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <!-- نافذة تأكيد نجاح التسجيل المنبثقة -->
+  <div class="modal" id="successModal">
+    <div class="modal-card">
+      <div class="success-check-icon">🎉</div>
+      <h3>تم تسجيل طلبك بنجاح!</h3>
+      <p class="success-lead">سعداء بمرافقتك، تم حفظ موعد مناقشتك وإخطار فريق نادي الجسور.</p>
+      
+      <div class="summary-box" id="successSummary">
+        <!-- يعبأ تلقائياً -->
+      </div>
+
+      <div class="remind-box">
+        <strong>📌 تذكير هام من نادي الجسور:</strong>
+        <p>ننتظرك في مقر النادي فور قدومك إلى الكلية يوم المناقشة، مع إحضار هاتفك مشحوناً 100% وبه مساحة 15 جيجابايت لإتمام الترتيبات.</p>
+      </div>
+
+      <button type="button" class="modal-btn" onclick="closeSuccessModal()">إغلاق ومتابعة</button>
+    </div>
+  </div>
+
+  <!-- نافذة إعدادات الربط السحابي (Google Sheets & Telegram) -->
+  <div class="modal" id="settingsModal">
+    <div class="modal-card modal-wide">
+      <div class="modal-header">
+        <h3>⚙️ إعدادات الربط السحابي والأتمتة</h3>
+        <button type="button" class="close-btn" onclick="closeSettingsModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <p class="settings-desc">يمكنك ربط المنصة مباشرة بـ Google Sheets وبوت تيليجرام لاستلام الإشعارات لحظة تسجيل كل طالب:</p>
+        
+        <div class="form-group">
+          <label for="webhookUrlInput">رابط تطبيق الويب (Google Apps Script Webhook URL)</label>
+          <input type="url" id="webhookUrlInput" placeholder="https://script.google.com/macros/s/.../exec" dir="ltr">
+          <small class="field-hint">انسخ الرابط من نشر كود Google Sheets المرفق لتخزين الطلبات سحابياً تلقائياً.</small>
+        </div>
+
+        <div class="form-group">
+          <label for="adminPassInput">تعديل كلمة مرور لوحة الإدارة</label>
+          <input type="text" id="adminPassInput" placeholder="كلمة المرور الحالية: josour2026">
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-save" onclick="saveSettings()">حفظ الإعدادات</button>
+          <button type="button" class="btn-cancel" onclick="closeSettingsModal()">إلغاء</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- تذييل الصفحة -->
+  <footer class="main-footer">
+    <div class="container footer-content">
+      <p>جميع الحقوق محفوظة © نادي الجسور 2026 — خدمة طلابية لتوثيق مناقشات التخرج</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
