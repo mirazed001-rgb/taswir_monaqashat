@@ -67,7 +67,7 @@ function getSettings() {
   const defaults = {
     adminPass: 'josour2026',
     webhookUrl: '',
-    sheetUrl: 'https://docs.google.com/spreadsheets/d/1DmuSOLyNDck0aeBtkapptSn2KdqyVzpiS2DOI6VKFBE/edit?gid=0#gid=0',
+    sheetUrl: 'https://docs.google.com/spreadsheets/d/1KDKJxfzQ3kYwpOsvkgRoRg7a9FuBcihIvgoajNPp730/edit?gid=0#gid=0',
     botToken: '8973353664:AAHzThHxzp69jYh-A_fCU6T3U9Q-kJFf9f0', // بوت توثيق مناقشات جسور الجديد (@JosourMonaqashatBot)
     chatId: '-1002534160494', // نُشَطَاء جُسُور |7|
     topicId: '' // قناة نشطاء جسور 7
@@ -347,7 +347,7 @@ function sendTelegramNotification(record, settings) {
 🏷️ <b>رمز الطلب:</b> <code>${record.id}</code>
 ⚡ <b>الحالة:</b> قيد المراجعة في المقر`;
 
-  const sheetUrl = settings.sheetUrl || "https://docs.google.com/spreadsheets/d/1DmuSOLyNDck0aeBtkapptSn2KdqyVzpiS2DOI6VKFBE/edit?gid=0#gid=0";
+  const sheetUrl = settings.sheetUrl || "https://docs.google.com/spreadsheets/d/1KDKJxfzQ3kYwpOsvkgRoRg7a9FuBcihIvgoajNPp730/edit?gid=0#gid=0";
   const acceptUrl = `https://mirazed001-rgb.github.io/taswir_monaqashat/?accept=${encodeURIComponent(record.id)}`;
 
   const url = `https://api.telegram.org/bot${settings.botToken}/sendMessage`;
@@ -394,7 +394,7 @@ function sendAcceptanceTelegramNotification(record, settings) {
   };
 
   const formattedDate = dateMap[record.defenseDate] || record.defenseDate;
-  const sheetUrl = settings.sheetUrl || "https://docs.google.com/spreadsheets/d/1DmuSOLyNDck0aeBtkapptSn2KdqyVzpiS2DOI6VKFBE/edit?gid=0#gid=0";
+  const sheetUrl = settings.sheetUrl || "https://docs.google.com/spreadsheets/d/1KDKJxfzQ3kYwpOsvkgRoRg7a9FuBcihIvgoajNPp730/edit?gid=0#gid=0";
 
   const msgHtml = 
 `✅ <b>تم قبول طلب توثيق مناقشة — نادي الجسور</b>
