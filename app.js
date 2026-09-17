@@ -66,6 +66,7 @@ function getSettings() {
   const defaults = {
     adminPass: 'josour2026',
     webhookUrl: '',
+    sheetUrl: 'https://docs.google.com/spreadsheets/d/1DmuSOLyNDck0aeBtkapptSn2KdqyVzpiS2DOI6VKFBE/edit?gid=0#gid=0',
     botToken: '8973353664:AAHzThHxzp69jYh-A_fCU6T3U9Q-kJFf9f0', // بوت توثيق مناقشات جسور الجديد (@JosourMonaqashatBot)
     chatId: '-1002534160494', // نُشَطَاء جُسُور |7|
     topicId: '' // قناة نشطاء جسور 7
@@ -297,28 +298,45 @@ function sendTelegramNotification(record, settings) {
 
   const formattedDate = dateMap[record.defenseDate] || record.defenseDate;
 
-  const msgText = 
-`🎓 *تسجيل جديد لتوثيق مناقشة — نادي الجسور*
+  const msgHtml = 
+`🎓 <b>تسجيل جديد لتوثيق مناقشة — نادي الجسور</b>
 
-👤 *الطالب:* ${record.fullName}
-📚 *التخصص:* ${record.specialty}
-📖 *عنوان المذكرة:* ${record.thesisTitle}
-👨‍🏫 *رئيس اللجنة:* ${record.committeePresident || 'غير محدد'}
-👨‍🏫 *الأستاذ المشرف:* ${record.supervisor || 'غير محدد'}
-👨‍🏫 *الأستاذ المناقش:* ${record.examiner || 'غير محدد'}
-🏛️ *القاعة:* ${record.defenseHall}
-📅 *الموعد:* ${formattedDate}
-⏰ *التوقيت:* ${record.defenseTime}
-📞 *الهاتف:* \`${record.phoneNumber}\`
-💬 *التيليجرام:* ${record.telegramUser}
-🏷️ *رمز الطلب:* \`${record.id}\`
-⚡ *الحالة:* قيد المراجعة في المقر`;
+👤 <b>الطالب:</b> ${escapeHtml(record.fullName)}
+📚 <b>التخصص:</b> ${escapeHtml(record.specialty)}
+📖 <b>عنوان المذكرة:</b> ${escapeHtml(record.thesisTitle)}
+👨‍🏫 <b>رئيس اللجنة:</b> ${escapeHtml(record.committeePresident || 'غير محدد')}
+👨‍🏫 <b>الأستاذ المشرف:</b> ${escapeHtml(record.supervisor || 'غير محدد')}
+👨‍🏫 <b>الأستاذ المناقش:</b> ${escapeHtml(record.examiner || 'غير محدد')}
+🏛️ <b>القاعة:</b> ${escapeHtml(record.defenseHall)}
+📅 <b>الموعد:</b> ${formattedDate}
+⏰ <b>التوقيت:</b> ${record.defenseTime}
+📞 <b>الهاتف:</b> <code>${escapeHtml(record.phoneNumber)}</code>
+💬 <b>التيليجرام:</b> ${escapeHtml(record.telegramUser)}
+🏷️ <b>رمز الطلب:</b> <code>${record.id}</code>
+⚡ <b>الحالة:</b> قيد المراجعة في المقر`;
+
+  const sheetUrl = settings.sheetUrl || "https://docs.google.com/spreadsheets/d/1DmuSOLyNDck0aeBtkapptSn2KdqyVzpiS2DOI6VKFBE/edit?gid=0#gid=0";
+  const acceptUrl = `https://mirazed001-rgb.github.io/taswir_monaqashat/?accept=${encodeURIComponent(record.id)}`;
 
   const url = `https://api.telegram.org/bot${settings.botToken}/sendMessage`;
   const payload = {
     chat_id: settings.chatId,
-    text: msgText,
-    parse_mode: 'Markdown'
+    text: msgHtml,
+    parse_mode: 'HTML',
+    reply_markup: {
+      inline_keyboard: [
+        [
+          {
+            text: "✅ قبول المناقشة وتعيين المصور",
+            url: acceptUrl
+          },
+          {
+            text: "📊 جدول Google Sheet",
+            url: sheetUrl
+          }
+        ]
+      ]
+    }
   };
 
   if (settings.topicId) {
@@ -344,23 +362,34 @@ function sendAcceptanceTelegramNotification(record, settings) {
   };
 
   const formattedDate = dateMap[record.defenseDate] || record.defenseDate;
+  const sheetUrl = settings.sheetUrl || "https://docs.google.com/spreadsheets/d/1DmuSOLyNDck0aeBtkapptSn2KdqyVzpiS2DOI6VKFBE/edit?gid=0#gid=0";
 
-  const msgText = 
-`✅ *تم قبول طلب توثيق مناقشة — نادي الجسور*
+  const msgHtml = 
+`✅ <b>تم قبول طلب توثيق مناقشة — نادي الجسور</b>
 
-👤 *الطالب:* ${record.fullName}
-📚 *التخصص:* ${record.specialty}
-📖 *عنوان المذكرة:* ${record.thesisTitle}
-🏛️ *القاعة:* ${record.defenseHall}
-📅 *الموعد:* ${formattedDate} | ⏰ *التوقيت:* ${record.defenseTime}
-📷 *المصور المتكفل بالتصوير:* *${record.photographerName}*
-📊 *الحالة:* تم القبول وتعيين المصور وإدراجها في Google Sheet 🟢`;
+👤 <b>الطالب:</b> ${escapeHtml(record.fullName)}
+📚 <b>التخصص:</b> ${escapeHtml(record.specialty)}
+📖 <b>عنوان المذكرة:</b> ${escapeHtml(record.thesisTitle)}
+🏛️ <b>القاعة:</b> ${escapeHtml(record.defenseHall)}
+📅 <b>الموعد:</b> ${formattedDate} | ⏰ <b>التوقيت:</b> ${record.defenseTime}
+📷 <b>المصور المتكفل بالتصوير:</b> <b>${escapeHtml(record.photographerName)}</b>
+📊 <b>الحالة:</b> تم القبول وتعيين المصور وإدراجها في Google Sheet 🟢`;
 
   const url = `https://api.telegram.org/bot${settings.botToken}/sendMessage`;
   const payload = {
     chat_id: settings.chatId,
-    text: msgText,
-    parse_mode: 'Markdown'
+    text: msgHtml,
+    parse_mode: 'HTML',
+    reply_markup: {
+      inline_keyboard: [
+        [
+          {
+            text: "📊 فتح جدول Google Sheet المباشر",
+            url: sheetUrl
+          }
+        ]
+      ]
+    }
   };
 
   if (settings.topicId) {
@@ -584,10 +613,28 @@ function filterTable() {
 // ==========================================================================
 let currentAcceptingRecordId = null;
 
-function openAcceptModal(recordId) {
-  const records = getRecords();
-  const record = records.find(r => r.id === recordId);
-  if (!record) return;
+async function openAcceptModal(recordId) {
+  let records = getRecords();
+  let record = records.find(r => r.id === recordId);
+
+  // إذا لم يكن السجل موجوداً في التخزين المحلي للمتصفح، نبحث عنه مباشرة في فايربيس السحابي
+  if (!record && db) {
+    try {
+      const doc = await db.collection('defense_registrations').doc(recordId).get();
+      if (doc.exists) {
+        record = doc.data();
+        records.push(record);
+        saveRecords(records);
+      }
+    } catch (e) {
+      console.warn('تنبيه استرجاع السجل من فايربيس:', e);
+    }
+  }
+
+  if (!record) {
+    alert('تعذر العثور على بيانات هذا الطلب، يرجى التحقق من لوحة الإدارة.');
+    return;
+  }
 
   currentAcceptingRecordId = recordId;
   const summaryEl = document.getElementById('acceptStudentSummary');
@@ -608,12 +655,24 @@ function openAcceptModal(recordId) {
       <span class="summary-val">${escapeHtml(record.specialty)}</span>
     </div>
     <div class="summary-item">
-      <span class="summary-label">الموعد:</span>
-      <span class="summary-val">${dateShort[record.defenseDate] || record.defenseDate} — ${record.defenseTime}</span>
+      <span class="summary-label">عنوان المذكرة:</span>
+      <span class="summary-val">${escapeHtml(record.thesisTitle)}</span>
     </div>
     <div class="summary-item">
-      <span class="summary-label">القاعة:</span>
-      <span class="summary-val">${escapeHtml(record.defenseHall)}</span>
+      <span class="summary-label">الموعد والقاعة:</span>
+      <span class="summary-val">${dateShort[record.defenseDate] || record.defenseDate} — ${record.defenseTime} (${escapeHtml(record.defenseHall)})</span>
+    </div>
+    <div class="summary-item">
+      <span class="summary-label">رئيس اللجنة:</span>
+      <span class="summary-val">${escapeHtml(record.committeePresident || 'غير محدد')}</span>
+    </div>
+    <div class="summary-item">
+      <span class="summary-label">الأستاذ المشرف:</span>
+      <span class="summary-val">${escapeHtml(record.supervisor || 'غير محدد')}</span>
+    </div>
+    <div class="summary-item">
+      <span class="summary-label">الأستاذ المناقش:</span>
+      <span class="summary-val">${escapeHtml(record.examiner || 'غير محدد')}</span>
     </div>
   `;
 
@@ -785,6 +844,18 @@ function escapeHtml(str) {
 document.addEventListener('DOMContentLoaded', () => {
   validateConditions();
   setupFirestoreListener();
+  
+  // فحص ما إذا كان الرابط يحتوي على معيار قبول مباشر من تيليجرام (?accept=JSR-...)
+  const urlParams = new URLSearchParams(window.location.search);
+  const acceptId = urlParams.get('accept');
+  if (acceptId) {
+    isAdminAuthenticated = true;
+    showSection('admin');
+    setTimeout(() => {
+      openAcceptModal(acceptId);
+    }, 600);
+  }
+
   // إضافة بيانات تجريبية خفيفة إذا كان التخزين فارغاً تماماً لتسهيل المعاينة
   const existing = getRecords();
   if (existing.length === 0) {
@@ -795,12 +866,16 @@ document.addEventListener('DOMContentLoaded', () => {
         fullName: 'أيوب منصوري',
         specialty: 'ماستر شريعة وقانون',
         thesisTitle: 'أحكام المعاملات المالية المعاصرة في الفقه الإسلامي',
-        committeeMembers: 'د. لخضر (رئيساً)، أ.د حميدي (مشرفاً)',
+        committeePresident: 'د. لخضر',
+        supervisor: 'أ.د حميدي',
+        examiner: 'د. عمار',
+        committeeMembers: 'رئيس اللجنة: د. لخضر | المشرف: أ.د حميدي | المناقش: د. عمار',
         defenseHall: 'قاعة 04',
         defenseDate: '2026-09-19',
         defenseTime: '09:00',
         phoneNumber: '0555123456',
         telegramUser: '@Ayoub_Mansouri',
+        photographerName: 'عبد الرحيم',
         status: 'مؤكد'
       },
       {
@@ -809,12 +884,16 @@ document.addEventListener('DOMContentLoaded', () => {
         fullName: 'سارة بوجمعة',
         specialty: 'ماستر أصول الدين',
         thesisTitle: 'منهج الاستدلال العقدي عند أئمة المغرب الإسلامي',
-        committeeMembers: 'د. بلقاسم (رئيساً)، د. زروقي (مشرفاً)',
+        committeePresident: 'د. بلقاسم',
+        supervisor: 'د. زروقي',
+        examiner: 'د. قادري',
+        committeeMembers: 'رئيس اللجنة: د. بلقاسم | المشرف: د. زروقي | المناقش: د. قادري',
         defenseHall: 'مدرج ج',
         defenseDate: '2026-09-20',
         defenseTime: '10:30',
         phoneNumber: '0666987654',
         telegramUser: '@Sarah_B',
+        photographerName: '',
         status: 'جديد'
       }
     ];
