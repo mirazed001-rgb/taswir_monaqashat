@@ -42,22 +42,19 @@ function doPost(e) {
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
-    // إدراج السطر الجديد في جوجل شيت بالعناوين المطلوبة
+    // إدراج السطر الجديد في جوجل شيت بالتقسيم الدقيق المطلوب
     let committeeText = data.committeeMembers || "";
     if (!committeeText && (data.committeePresident || data.supervisor || data.examiner)) {
       committeeText = `الرئيس: ${data.committeePresident || ''} | المشرف: ${data.supervisor || ''} | المناقش: ${data.examiner || ''}`;
     }
 
     const newRow = [
-      data.thesisTitle || "",
       data.fullName || "",
-      committeeText,
-      data.defenseDate || "",
       data.defenseHall || "",
+      data.defenseDate || "",
       data.defenseTime || "",
-      data.photographerName || "لم يُعيّن بعد",
-      data.phoneNumber || "",
-      data.status || "مؤكد"
+      committeeText,
+      data.photographerName || "لم يُعيّن بعد"
     ];
 
     sheet.appendRow(newRow);
@@ -91,14 +88,14 @@ function doGet(e) {
 }
 
 /**
- * حساب عدد المسجلين في يوم محدد (العمود رقم 4 هو التاريخ)
+ * حساب عدد المسجلين في يوم محدد (العمود رقم 3 هو التاريخ)
  */
 function countRegistrationsForDay(sheet, dateStr) {
   const data = sheet.getDataRange().getValues();
   if (data.length <= 1) return 0;
   let count = 0;
   for (let i = 1; i < data.length; i++) {
-    if (data[i][3] === dateStr) { // العمود رقم 4 (D) هو التاريخ
+    if (data[i][2] === dateStr) { // العمود رقم 3 (C) هو التاريخ
       count++;
     }
   }
@@ -120,17 +117,14 @@ function setupHeaders() {
   sheet.setName("سجل المناقشات");
   sheet.setRightToLeft(true);
 
-  // عناوين الأعمدة الستة الأساسية المطلوبة بدقة تامة
+  // عناوين الأعمدة الستة المحددة بدقة
   const headers = [
-    "عنوان المناقشة",
-    "اسم الطالب",
-    "اللجنة",
-    "التاريخ",
+    "اسم الطالب المناقش",
     "القاعة",
+    "التاريخ",
     "الساعة",
-    "المصور المتكفل بالتصوير",
-    "رقم الهاتف",
-    "الحالة"
+    "أسماء اللجنة",
+    "اسم الذي سيصور"
   ];
 
   // تعيين العناوين في الصف الأول
@@ -147,7 +141,7 @@ function setupHeaders() {
   sheet.setRowHeight(1, 38);
 
   // ضبط عرض الأعمدة تلقائياً لتناسب القراءة والطباعة
-  const colWidths = [280, 180, 260, 130, 130, 100, 180, 130, 100];
+  const colWidths = [220, 150, 140, 120, 340, 200];
   for (let c = 1; c <= colWidths.length; c++) {
     sheet.setColumnWidth(c, colWidths[c - 1]);
   }
@@ -175,7 +169,7 @@ function getOrCreateSheet() {
  */
 function formatLastRow(sheet) {
   const lastRow = sheet.getLastRow();
-  const range = sheet.getRange(lastRow, 1, 1, 9);
+  const range = sheet.getRange(lastRow, 1, 1, 6);
   range.setVerticalAlignment("middle");
   range.setHorizontalAlignment("center");
   sheet.setRowHeight(lastRow, 28);
@@ -187,8 +181,8 @@ function formatLastRow(sheet) {
     range.setBackground("#ffffff");
   }
 
-  // تمييز خلية اسم المصور بلون زمردي خفيف (العمود 7)
-  const photographerCell = sheet.getRange(lastRow, 7);
+  // تمييز خلية اسم المصور بلون زمردي خفيف (العمود 6)
+  const photographerCell = sheet.getRange(lastRow, 6);
   photographerCell.setFontWeight("bold");
   photographerCell.setFontColor("#065f46");
 }
