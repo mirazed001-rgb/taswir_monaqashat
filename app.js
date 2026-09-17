@@ -900,15 +900,19 @@ document.addEventListener('DOMContentLoaded', () => {
   setupFirestoreListener();
   updateDateOptionsQuota();
   
-  // فحص ما إذا كان الرابط يحتوي على معيار قبول مباشر من تيليجرام (?accept=JSR-...)
+  // فحص روابط الوصول المباشر للوحة الإدارة أو معيار القبول من تيليجرام
   const urlParams = new URLSearchParams(window.location.search);
   const acceptId = urlParams.get('accept');
+  const isAdminParam = urlParams.get('admin') !== null || urlParams.get('view') === 'admin' || window.location.hash === '#admin';
+
   if (acceptId) {
     isAdminAuthenticated = true;
     showSection('admin');
     setTimeout(() => {
       openAcceptModal(acceptId);
     }, 600);
+  } else if (isAdminParam) {
+    showSection('admin');
   }
 
   // إضافة بيانات تجريبية خفيفة إذا كان التخزين فارغاً تماماً لتسهيل المعاينة
