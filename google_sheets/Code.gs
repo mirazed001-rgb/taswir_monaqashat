@@ -42,22 +42,21 @@ function doPost(e) {
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
-    // إدراج السطر الجديد في جوجل شيت متضمناً اسم المصور وتفاصيل اللجنة
+    // إدراج السطر الجديد في جوجل شيت بالعناوين المطلوبة
+    let committeeText = data.committeeMembers || "";
+    if (!committeeText && (data.committeePresident || data.supervisor || data.examiner)) {
+      committeeText = `الرئيس: ${data.committeePresident || ''} | المشرف: ${data.supervisor || ''} | المناقش: ${data.examiner || ''}`;
+    }
+
     const newRow = [
-      data.id || ("JSR-" + new Date().getTime().toString().slice(-6)),
-      new Date().toLocaleString("ar-DZ", { timeZone: "Africa/Algiers" }),
-      data.fullName || "",
-      data.specialty || "",
       data.thesisTitle || "",
-      data.committeePresident || "",
-      data.supervisor || "",
-      data.examiner || "",
-      data.defenseHall || "",
+      data.fullName || "",
+      committeeText,
       data.defenseDate || "",
+      data.defenseHall || "",
       data.defenseTime || "",
+      data.photographerName || "لم يُعيّن بعد",
       data.phoneNumber || "",
-      data.telegramUser || "",
-      data.photographerName || "لم يُعيّن",
       data.status || "مؤكد"
     ];
 
@@ -66,13 +65,9 @@ function doPost(e) {
     // تنسيق السطر الجديد
     formatLastRow(sheet);
 
-    // إرسال إشعار تأكيد بقناة نشطاء جسور 7
-    sendTelegramAlert(data);
-
     return ContentService.createTextOutput(JSON.stringify({ 
       status: "success", 
-      id: newRow[0],
-      message: "تم إدراج المناقشة المقبولة واسم المصور في Google Sheets بنجاح" 
+      message: "تم إدراج المناقشة في Google Sheets بنجاح" 
     })).setMimeType(ContentService.MimeType.JSON);
 
   } catch (error) {
@@ -91,31 +86,25 @@ function doGet(e) {
     status: "active",
     club: "نادي الجسور الجامعي",
     service: "خدمة توثيق مناقشات التخرج 2026",
-    maxPerDay: MAX_PER_DAY,
-    bot: "@JosourMonaqashatBot",
-    channel: "نُشَطَاء جُسُور |7|",
-    days: ["2026-09-19", "2026-09-20", "2026-09-21", "2026-09-22"]
+    maxPerDay: MAX_PER_DAY
   })).setMimeType(ContentService.MimeType.JSON);
 }
 
 /**
- * حساب عدد المسجلين في يوم محدد
+ * حساب عدد المسجلين في يوم محدد (العمود رقم 4 هو التاريخ)
  */
 function countRegistrationsForDay(sheet, dateStr) {
   const data = sheet.getDataRange().getValues();
   if (data.length <= 1) return 0;
   let count = 0;
   for (let i = 1; i < data.length; i++) {
-    if (data[i][9] === dateStr) { // العمود رقم 10 هو يوم المناقشة
+    if (data[i][3] === dateStr) { // العمود رقم 4 (D) هو التاريخ
       count++;
     }
   }
   return count;
 }
 
-/**
- * فتح الورقة المخصصة أو إنشاؤها وتنسيقها بألوان وهوية نادي الجسور
- */
 /**
  * دالة تهيئة وبناء عناوين الجدول تلقائياً بألوان نادي الجسور
  * تعمل فور فتح الشيت أو عند الضغط على زر تشغيل (Run)
@@ -128,25 +117,19 @@ function setupHeaders() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheets()[0];
   
-  sheet.setName("سجل المناقشات المقبولة");
+  sheet.setName("سجل المناقشات");
   sheet.setRightToLeft(true);
 
-  // عناوين الأعمدة الخمسة عشر المفصلة
+  // عناوين الأعمدة الستة الأساسية المطلوبة بدقة تامة
   const headers = [
-    "رمز الطلب",
-    "تاريخ ووقت القبول",
-    "اسم الطالب ولقبه",
-    "التخصص والشعبة",
-    "عنوان مذكرة التخرج",
-    "رئيس لجنة المناقشة",
-    "الأستاذ المشرف",
-    "الأستاذ المناقش (الممتحن)",
-    "القاعة / المدرج",
-    "يوم المناقشة",
-    "التوقيت",
-    "رقم الهاتف",
-    "معرف التيليجرام",
+    "عنوان المناقشة",
+    "اسم الطالب",
+    "اللجنة",
+    "التاريخ",
+    "القاعة",
+    "الساعة",
     "المصور المتكفل بالتصوير",
+    "رقم الهاتف",
     "الحالة"
   ];
 
@@ -164,7 +147,7 @@ function setupHeaders() {
   sheet.setRowHeight(1, 38);
 
   // ضبط عرض الأعمدة تلقائياً لتناسب القراءة والطباعة
-  const colWidths = [110, 160, 160, 180, 260, 150, 150, 150, 130, 120, 90, 130, 130, 190, 100];
+  const colWidths = [280, 180, 260, 130, 130, 100, 180, 130, 100];
   for (let c = 1; c <= colWidths.length; c++) {
     sheet.setColumnWidth(c, colWidths[c - 1]);
   }
@@ -192,7 +175,7 @@ function getOrCreateSheet() {
  */
 function formatLastRow(sheet) {
   const lastRow = sheet.getLastRow();
-  const range = sheet.getRange(lastRow, 1, 1, 15);
+  const range = sheet.getRange(lastRow, 1, 1, 9);
   range.setVerticalAlignment("middle");
   range.setHorizontalAlignment("center");
   sheet.setRowHeight(lastRow, 28);
@@ -204,8 +187,8 @@ function formatLastRow(sheet) {
     range.setBackground("#ffffff");
   }
 
-  // تمييز خلية اسم المصور بلون زمردي خفيف
-  const photographerCell = sheet.getRange(lastRow, 14);
+  // تمييز خلية اسم المصور بلون زمردي خفيف (العمود 7)
+  const photographerCell = sheet.getRange(lastRow, 7);
   photographerCell.setFontWeight("bold");
   photographerCell.setFontColor("#065f46");
 }
