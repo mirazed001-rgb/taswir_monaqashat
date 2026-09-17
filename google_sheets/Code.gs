@@ -201,30 +201,42 @@ function sendTelegramAlert(data) {
 
   const dayLabel = dateLabels[data.defenseDate] || data.defenseDate;
 
-  const message = 
-`✅ *تم قبول طلب توثيق مناقشة وتعيين المصور — نادي الجسور*
+  const sheetUrl = "https://docs.google.com/spreadsheets/d/1DmuSOLyNDck0aeBtkapptSn2KdqyVzpiS2DOI6VKFBE/edit?gid=0#gid=0";
 
-👤 *الطالب:* ${data.fullName}
-📚 *التخصص:* ${data.specialty}
-📖 *عنوان المذكرة:* ${data.thesisTitle}
-👨‍🏫 *رئيس اللجنة:* ${data.committeePresident || 'غير محدد'}
-👨‍🏫 *الأستاذ المشرف:* ${data.supervisor || 'غير محدد'}
-👨‍🏫 *الأستاذ المناقش:* ${data.examiner || 'غير محدد'}
-🏛️ *القاعة:* ${data.defenseHall}
-📅 *الموعد:* ${dayLabel}
-⏰ *التوقيت:* ${data.defenseTime}
-📞 *الهاتف:* \`${data.phoneNumber}\`
-💬 *التيليجرام:* ${data.telegramUser}
-📷 *المصور المتكفل بالتصوير:* *${data.photographerName || 'لم يُعيّن'}*
-🏷️ *رمز الطلب:* \`${data.id || "JSR"}\`
-📊 *الحالة:* أُدرجت المناقشة تلقائياً في Google Sheet 🟢`;
+  const message = 
+`✅ <b>تم قبول طلب توثيق مناقشة وتعيين المصور — نادي الجسور</b>
+
+👤 <b>الطالب:</b> ${data.fullName || ''}
+📚 <b>التخصص:</b> ${data.specialty || ''}
+📖 <b>عنوان المذكرة:</b> ${data.thesisTitle || ''}
+👨‍🏫 <b>رئيس اللجنة:</b> ${data.committeePresident || 'غير محدد'}
+👨‍🏫 <b>الأستاذ المشرف:</b> ${data.supervisor || 'غير محدد'}
+👨‍🏫 <b>الأستاذ المناقش:</b> ${data.examiner || 'غير محدد'}
+🏛️ <b>القاعة:</b> ${data.defenseHall || ''}
+📅 <b>الموعد:</b> ${dayLabel}
+⏰ <b>التوقيت:</b> ${data.defenseTime || ''}
+📞 <b>الهاتف:</b> <code>${data.phoneNumber || ''}</code>
+💬 <b>التيليجرام:</b> ${data.telegramUser || ''}
+📷 <b>المصور المتكفل بالتصوير:</b> <b>${data.photographerName || 'لم يُعيّن'}</b>
+🏷️ <b>رمز الطلب:</b> <code>${data.id || "JSR"}</code>
+📊 <b>الحالة:</b> أُدرجت المناقشة تلقائياً في Google Sheet 🟢`;
 
   const url = "https://api.telegram.org/bot" + TELEGRAM_CONFIG.BOT_TOKEN + "/sendMessage";
 
   const payload = {
     chat_id: TELEGRAM_CONFIG.CHAT_ID,
     text: message,
-    parse_mode: "Markdown"
+    parse_mode: "HTML",
+    reply_markup: {
+      inline_keyboard: [
+        [
+          {
+            text: "📊 فتح جدول Google Sheet المباشر",
+            url: sheetUrl
+          }
+        ]
+      ]
+    }
   };
 
   if (TELEGRAM_CONFIG.TOPIC_ID) {
