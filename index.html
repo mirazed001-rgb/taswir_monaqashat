@@ -261,8 +261,11 @@
               <p class="dashboard-subtitle">متابعة لحظية وتحديث لحالات المناقشات للأيام الأربعة (19 — 22 سبتمبر)</p>
             </div>
             <div class="dashboard-top-actions">
+              <a href="https://docs.google.com/spreadsheets/d/1DmuSOLyNDck0aeBtkapptSn2KdqyVzpiS2DOI6VKFBE/edit?gid=0#gid=0" id="googleSheetLinkBtn" target="_blank" rel="noopener noreferrer" class="action-btn" style="background:#0f5132; border-color:#198754; color:#ffffff;">
+                <span>📊</span> جدول Google Sheet
+              </a>
               <button type="button" class="action-btn export-btn" onclick="exportDataToCSV()">
-                <span>📊</span> تصدير إلى Excel
+                <span>📥</span> تصدير إلى Excel
               </button>
               <button type="button" class="action-btn print-btn" onclick="printTableSchedule()">
                 <span>🖨️</span> طباعة الجدول
@@ -431,6 +434,12 @@
           <label for="webhookUrlInput">رابط تطبيق الويب (Google Apps Script Webhook URL)</label>
           <input type="url" id="webhookUrlInput" placeholder="https://script.google.com/macros/s/.../exec" dir="ltr">
           <small class="field-hint">انسخ الرابط من نشر كود Google Sheets المرفق لتخزين الطلبات سحابياً تلقائياً.</small>
+        </div>
+
+        <div class="form-group">
+          <label for="sheetUrlInput">رابط جدول Google Sheet المباشر</label>
+          <input type="url" id="sheetUrlInput" placeholder="https://docs.google.com/spreadsheets/d/.../edit" dir="ltr">
+          <small class="field-hint">الرابط المباشر للجدول ليتمكن المشرفون من فتحه بنقرة واحدة من لوحة الإدارة ومن تيليجرام.</small>
         </div>
 
         <div class="form-group">
