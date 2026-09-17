@@ -49,6 +49,7 @@ function setupFirestoreListener() {
       if (remoteRecords.length > 0) {
         remoteRecords.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         saveRecords(remoteRecords);
+        updateDateOptionsQuota();
         if (isAdminAuthenticated) {
           renderDashboard();
         }
@@ -152,8 +153,39 @@ function validateConditions() {
 }
 
 // ==========================================================================
-// التحقق من حصة اليوم (5 كحد أقصى)
+// التحقق من حصة اليوم (5 كحد أقصى) وإغلاق الأيام المكتملة
 // ==========================================================================
+function updateDateOptionsQuota() {
+  const dateSelect = document.getElementById('defenseDate');
+  if (!dateSelect) return;
+  const records = getRecords();
+
+  const daysInfo = [
+    { value: '2026-09-19', label: 'السبت 19 سبتمبر 2026' },
+    { value: '2026-09-20', label: 'الأحد 20 سبتمبر 2026' },
+    { value: '2026-09-21', label: 'الاثنين 21 سبتمبر 2026' },
+    { value: '2026-09-22', label: 'الثلاثاء 22 سبتمبر 2026' }
+  ];
+
+  const currentVal = dateSelect.value;
+  let html = '<option value="" disabled ' + (!currentVal ? 'selected' : '') + '>-- اختر تاريخ المناقشة (الحد الأقصى 5 يومياً) --</option>';
+
+  daysInfo.forEach(day => {
+    const dayCount = records.filter(r => r.defenseDate === day.value).length;
+    const remaining = MAX_PER_DAY - dayCount;
+    const isFull = remaining <= 0;
+    const isSelected = currentVal === day.value;
+
+    if (isFull) {
+      html += `<option value="${day.value}" disabled style="color:#ef4444; background:#1e293b; font-weight:bold;">${day.label} (❌ اكتمل الحد الأقصى 5/5)</option>`;
+    } else {
+      html += `<option value="${day.value}" ${isSelected ? 'selected' : ''}>${day.label} (متبقي ${remaining} من 5)</option>`;
+    }
+  });
+
+  dateSelect.innerHTML = html;
+}
+
 function handleDateChange() {
   const dateInput = document.getElementById('defenseDate');
   const selectedDate = dateInput.value;
@@ -162,7 +194,7 @@ function handleDateChange() {
 
   if (!selectedDate) {
     badge.className = 'quota-badge';
-    badge.textContent = 'الحد الأقصى: 5 مناقشات في اليوم';
+    badge.textContent = 'الحد الأقصى: 5 مناقشات في اليوم الواحد';
     return;
   }
 
@@ -172,11 +204,11 @@ function handleDateChange() {
 
   if (remaining <= 0) {
     badge.className = 'quota-badge full';
-    badge.textContent = '❌ عذراً، اكتمل العدد الأقصى لهذا اليوم (5 مناقشات). يرجى اختيار تاريخ آخر.';
+    badge.innerHTML = '<strong>❌ عذراً، اكتمل العدد الأقصى لهذا اليوم (5 مناقشات). لا يمكن لأحد تسجيل المزيد في هذا اليوم.</strong>';
     submitBtn.disabled = true;
   } else {
     badge.className = 'quota-badge';
-    badge.textContent = `الأماكن الشاغرة لهذا اليوم: ${remaining} من أصل 5 أماكن.`;
+    badge.textContent = `الأماكن الشاغرة لهذا اليوم: ${remaining} من أصل 5 مناقشات.`;
     // تفعيل الزر إذا كانت الشروط مفعلة
     const conds = [
       document.getElementById('cond1').checked,
@@ -686,17 +718,16 @@ function closeAcceptModal() {
 }
 
 async function confirmAcceptance() {
-  const photographer = document.getElementById('photographerInput').value.trim();
-  if (!photographer) {
-    alert('يرجى إدخال اسم المصور المتكفل بالتصوير أولاً للمتابعة.');
-    return;
-  }
+  const photographerInput = document.getElementById('photographerInput');
+  const photographer = photographerInput ? photographerInput.value.trim() : '';
+  // إذا لم يُدخل المشرف اسماً، نتركه فارغاً أو نكتب لم يُعيّن بعد ليتم إضافته يدوياً في جدول Google Sheet
+  const photographerText = photographer || 'لم يُعيّن بعد (يضاف يدوياً)';
 
   const records = getRecords();
   const record = records.find(r => r.id === currentAcceptingRecordId);
   if (!record) return;
 
-  record.photographerName = photographer;
+  record.photographerName = photographerText;
   record.status = 'مؤكد';
   record.acceptedAt = new Date().toISOString();
 
@@ -706,7 +737,7 @@ async function confirmAcceptance() {
   // 1. تحديث قاعدة بيانات فايربيس السحابية
   if (db) {
     db.collection('defense_registrations').doc(record.id).update({
-      photographerName: photographer,
+      photographerName: photographerText,
       status: 'مؤكد',
       acceptedAt: record.acceptedAt
     }).catch(e => console.warn('Firebase update notice:', e));
@@ -732,7 +763,7 @@ async function confirmAcceptance() {
   sendAcceptanceTelegramNotification(record, settings);
 
   closeAcceptModal();
-  alert(`✅ تم بنجاح قبول طلب الطالب (${record.fullName}) وتعيين المصور (${photographer})، وجاري إدراجه في Google Sheet!`);
+  alert(`✅ تم بنجاح قبول طلب الطالب (${record.fullName}) وإدراجه تلقائياً في Google Sheet بنجاح!`);
 }
 
 function changeStatus(recordId, newStatus) {
@@ -844,6 +875,7 @@ function escapeHtml(str) {
 document.addEventListener('DOMContentLoaded', () => {
   validateConditions();
   setupFirestoreListener();
+  updateDateOptionsQuota();
   
   // فحص ما إذا كان الرابط يحتوي على معيار قبول مباشر من تيليجرام (?accept=JSR-...)
   const urlParams = new URLSearchParams(window.location.search);
